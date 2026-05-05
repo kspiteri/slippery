@@ -1,4 +1,6 @@
 const ORS_KEY = import.meta.env.VITE_ORS_KEY as string
+// Geocoding endpoints only accept the key as a query param — Authorization header triggers a CORS preflight that ORS rejects.
+// fetchRoute uses Authorization because it's a POST and ORS allows it there.
 
 export interface GeocodeSuggestion {
   label: string
