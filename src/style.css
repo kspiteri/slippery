@@ -440,6 +440,34 @@ main {
   gap: 5px;
 }
 
+/* Verdict tabs */
+.verdict-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+}
+
+.verdict-tab {
+  flex: 1;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  padding: 8px 0;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.verdict-tab:hover { color: var(--text); }
+
+.verdict-tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
 /* Summary line — reason text, prominent */
 .verdict-summary {
   display: flex;

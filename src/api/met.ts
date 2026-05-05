@@ -5,9 +5,15 @@ export interface WeatherData {
   overnightLow: number
   recentPrecipMm: number
   precipType: 'none' | 'rain' | 'sleet' | 'snow'
-  rainNextHours: number   // total mm forecast in next 3h
+  rainNextHours: number   // total mm forecast in next 3h from offset
   hasIceAlert: boolean
   alertSummary: string
+}
+
+export interface WeatherSnapshot {
+  now: WeatherData
+  plus2h: WeatherData
+  plus8h: WeatherData
 }
 
 interface ForecastTimestep {
@@ -18,31 +24,45 @@ interface ForecastTimestep {
   }
 }
 
-export async function fetchWeather(lat: number, lng: number): Promise<WeatherData> {
+export async function fetchWeatherAll(lat: number, lng: number): Promise<WeatherSnapshot> {
   const [forecast, alerts] = await Promise.all([
     fetchForecast(lat, lng),
     fetchAlerts(lat, lng),
   ])
 
-  const now = new Date()
-  const eightHoursAhead = new Date(now.getTime() + 8 * 60 * 60 * 1000)
-  const threeHoursAhead = new Date(now.getTime() + 3 * 60 * 60 * 1000)
+  return {
+    now:    deriveWeather(forecast, alerts, 0),
+    plus2h: deriveWeather(forecast, alerts, 2),
+    plus8h: deriveWeather(forecast, alerts, 8),
+  }
+}
 
-  const currentStep = forecast[0]
+function deriveWeather(
+  forecast: ForecastTimestep[],
+  alerts: { hasIceAlert: boolean; alertSummary: string },
+  offsetHours: number,
+): WeatherData {
+  const base = new Date()
+  const origin = new Date(base.getTime() + offsetHours * 60 * 60 * 1000)
+  const lookAhead8h = new Date(origin.getTime() + 8 * 60 * 60 * 1000)
+  const lookAhead3h = new Date(origin.getTime() + 3 * 60 * 60 * 1000)
+
+  // find the closest step at or after origin
+  const currentStep = forecast.find((s) => new Date(s.time) >= origin) ?? forecast[0]
   const currentTemp = currentStep?.data.instant.details.air_temperature ?? 5
 
   const comingSteps = forecast.filter((s) => {
     const t = new Date(s.time)
-    return t >= now && t <= eightHoursAhead
+    return t >= origin && t <= lookAhead8h
   })
-  const comingTemps = comingSteps.map((s) => s.data.instant.details.air_temperature)
-  const overnightLow = comingTemps.length ? Math.min(...comingTemps) : currentTemp
+  const overnightLow = comingSteps.length
+    ? Math.min(...comingSteps.map((s) => s.data.instant.details.air_temperature))
+    : currentTemp
 
   const recentPrecipMm = currentStep?.data.next_1_hours?.details.precipitation_amount ?? 0
 
-  // sum rain across next 3 hours for jacket recommendation
   const rainNextHours = forecast
-    .filter((s) => { const t = new Date(s.time); return t >= now && t <= threeHoursAhead })
+    .filter((s) => { const t = new Date(s.time); return t >= origin && t <= lookAhead3h })
     .reduce((sum, s) => sum + (s.data.next_1_hours?.details.precipitation_amount ?? 0), 0)
 
   const precipType = inferPrecipType(recentPrecipMm, overnightLow, currentTemp, currentStep)
@@ -88,13 +108,11 @@ function inferPrecipType(
 ): WeatherData['precipType'] {
   if (precipMm < 0.1) return 'none'
 
-  // use symbol code if available
   const symbol = step?.data.next_1_hours?.summary.symbol_code ?? ''
   if (symbol.includes('snow') || symbol.includes('blizzard')) return 'snow'
   if (symbol.includes('sleet')) return 'sleet'
   if (symbol.includes('rain')) return 'rain'
 
-  // infer from temperature
   if (overnightLow < -2 || currentTemp < 0) return 'snow'
   if (currentTemp < 2) return 'sleet'
   return 'rain'

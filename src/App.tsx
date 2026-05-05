@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from 'react'
 import { Sun, Moon } from 'lucide-react'
 import { loadAddresses } from './state'
 import { fetchRoute } from './api/ors'
-import { fetchWeather } from './api/met'
+import { fetchWeatherAll } from './api/met'
 import { buildElevationGrid } from './api/elevation'
 import { calculateSlipperiness, type SlippinessResult } from './logic/slipperiness'
 import { renderAsciiBackground } from './ui/ascii'
@@ -10,7 +10,7 @@ import { AddressForm, type Waypoint } from './ui/AddressForm'
 import { Verdict } from './ui/Verdict'
 import { AlertTriangle } from 'lucide-react'
 
-interface RouteState {
+export interface RouteState {
   slipperiness: SlippinessResult
   distanceKm: number
   durationMin: number
@@ -21,6 +21,12 @@ interface RouteState {
   precipType: string
   rainNextHours: number
   hasIceAlert: boolean
+}
+
+interface Results {
+  now: RouteState
+  plus2h: RouteState
+  plus8h: RouteState
 }
 
 type Theme = 'dark' | 'light'
@@ -35,7 +41,7 @@ export function App() {
   const [theme, setTheme] = useState<Theme>(getInitialTheme)
   const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle')
   const [error, setError] = useState('')
-  const [result, setResult] = useState<RouteState | null>(null)
+  const [results, setResults] = useState<Results | null>(null)
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme)
@@ -52,7 +58,7 @@ export function App() {
 
     setStatus('loading')
     setError('')
-    setResult(null)
+    setResults(null)
 
     try {
       const midLat = (from.lat + to.lat) / 2
@@ -60,22 +66,28 @@ export function App() {
 
       const [route, weather] = await Promise.all([
         fetchRoute(from, to, waypoints),
-        fetchWeather(midLat, midLng),
+        fetchWeatherAll(midLat, midLng),
       ])
 
-      const slipperiness = calculateSlipperiness(weather, route.dominantSurface)
+      function buildState(w: typeof weather.now): RouteState {
+        return {
+          slipperiness: calculateSlipperiness(w, route.dominantSurface),
+          distanceKm: route.distanceKm,
+          durationMin: route.durationMin,
+          dominantSurface: route.dominantSurface,
+          currentTemp: w.currentTemp,
+          overnightLow: w.overnightLow,
+          recentPrecipMm: w.recentPrecipMm,
+          precipType: w.precipType,
+          rainNextHours: w.rainNextHours,
+          hasIceAlert: w.hasIceAlert,
+        }
+      }
 
-      setResult({
-        slipperiness,
-        distanceKm: route.distanceKm,
-        durationMin: route.durationMin,
-        dominantSurface: route.dominantSurface,
-        currentTemp: weather.currentTemp,
-        overnightLow: weather.overnightLow,
-        recentPrecipMm: weather.recentPrecipMm,
-        precipType: weather.precipType,
-        rainNextHours: weather.rainNextHours,
-        hasIceAlert: weather.hasIceAlert,
+      setResults({
+        now:    buildState(weather.now),
+        plus2h: buildState(weather.plus2h),
+        plus8h: buildState(weather.plus8h),
       })
       setStatus('idle')
 
@@ -112,7 +124,7 @@ export function App() {
             {error}
           </div>
         )}
-        {result && <Verdict {...result} />}
+        {results && <Verdict now={results.now} plus2h={results.plus2h} plus8h={results.plus8h} />}
       </main>
     </div>
   )
