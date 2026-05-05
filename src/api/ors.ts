@@ -35,6 +35,8 @@ export async function geocodeReverse(lat: number, lng: number): Promise<GeocodeS
   }
 }
 
+const NOMINATIM_UA = 'slippery-bergen-pwa/1.0 github.com/kspiteri/slippery'
+
 export async function geocodeAutocomplete(text: string): Promise<GeocodeSuggestion[]> {
   const url = new URL('https://api.openrouteservice.org/geocode/autocomplete')
   url.searchParams.set('api_key', ORS_KEY)
@@ -48,11 +50,47 @@ export async function geocodeAutocomplete(text: string): Promise<GeocodeSuggesti
   if (!res.ok) throw new Error(`Geocode failed: ${res.status}`)
   const data = await res.json()
 
-  return (data.features ?? []).map((f: any) => ({
+  const orsResults: GeocodeSuggestion[] = (data.features ?? []).map((f: any) => ({
     label: f.properties.label,
     lat: f.geometry.coordinates[1],
     lng: f.geometry.coordinates[0],
   }))
+
+  if (orsResults.length >= 2) return orsResults
+
+  // ORS came up short — try Nominatim for POIs, shops, landmarks
+  const nominatim = await searchNominatim(text)
+  const merged = [...orsResults]
+  for (const r of nominatim) {
+    const duplicate = merged.some(
+      (m) => Math.abs(m.lat - r.lat) < 0.0001 && Math.abs(m.lng - r.lng) < 0.0001,
+    )
+    if (!duplicate) merged.push(r)
+  }
+  return merged.slice(0, 5)
+}
+
+async function searchNominatim(text: string): Promise<GeocodeSuggestion[]> {
+  const url = new URL('https://nominatim.openstreetmap.org/search')
+  url.searchParams.set('q', `${text} Bergen`)
+  url.searchParams.set('format', 'json')
+  url.searchParams.set('limit', '5')
+  url.searchParams.set('countrycodes', 'no')
+  url.searchParams.set('lat', '60.3913')
+  url.searchParams.set('lon', '5.3221')
+
+  try {
+    const res = await fetch(url.toString(), { headers: { 'User-Agent': NOMINATIM_UA } })
+    if (!res.ok) return []
+    const data: any[] = await res.json()
+    return data.map((r) => ({
+      label: r.display_name,
+      lat: parseFloat(r.lat),
+      lng: parseFloat(r.lon),
+    }))
+  } catch {
+    return []
+  }
 }
 
 export async function fetchRoute(
