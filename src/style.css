@@ -150,14 +150,6 @@ main {
   position: relative;
 }
 
-.swap-row {
-  display: flex;
-  justify-content: flex-end;
-  padding: 4px 0;
-  position: relative;
-  z-index: 1;
-}
-
 .swap-btn {
   background: var(--bg-input);
   border: 1px solid var(--border);
@@ -354,7 +346,14 @@ main {
   background: var(--accent-dim);
 }
 
+.form-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 #go-btn {
+  flex: 1;
   background: var(--accent);
   color: #fff;
   border: none;
@@ -369,7 +368,6 @@ main {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  width: 100%;
 }
 
 #go-btn:disabled {

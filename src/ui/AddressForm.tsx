@@ -338,11 +338,6 @@ export function AddressForm({ onCheck, loading }: Props) {
           overrideValue={fromOverride}
           showLocate
         />
-        <div className="swap-row">
-          <button type="button" className="swap-btn" onClick={handleSwap} aria-label="Swap addresses">
-            <ArrowUpDown size={14} />
-          </button>
-        </div>
 
         {waypointIds.map((id) => (
           <WaypointField
@@ -368,10 +363,16 @@ export function AddressForm({ onCheck, loading }: Props) {
           overrideValue={toOverride}
         />
       </div>
-      <button type="submit" id="go-btn" disabled={loading || !canCheck}>
-        <ArrowRight size={15} />
-        {loading ? 'checking…' : 'check route'}
-      </button>
+      <div className="form-actions">
+        <button type="button" className="swap-btn" onClick={handleSwap} aria-label="Swap addresses">
+          <ArrowUpDown size={14} />
+          swap
+        </button>
+        <button type="submit" id="go-btn" disabled={loading || !canCheck}>
+          <ArrowRight size={15} />
+          {loading ? 'checking…' : 'check route'}
+        </button>
+      </div>
     </form>
   )
 }
