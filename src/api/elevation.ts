@@ -13,8 +13,8 @@ export function buildElevationGrid(
   const lngs = coords.map((c) => c[0])
   const lats = coords.map((c) => c[1])
 
-  const padLng = (Math.max(...lngs) - Math.min(...lngs)) * 0.25 || 0.01
-  const padLat = (Math.max(...lats) - Math.min(...lats)) * 0.35 || 0.01
+  const padLng = Math.max((Math.max(...lngs) - Math.min(...lngs)) * 0.25, 0.08)
+  const padLat = Math.max((Math.max(...lats) - Math.min(...lats)) * 0.35, 0.07)
   const bounds = {
     minLng: Math.min(...lngs) - padLng,
     maxLng: Math.max(...lngs) + padLng,

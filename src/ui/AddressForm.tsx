@@ -1,10 +1,17 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { MapPin, X, ArrowRight, ArrowUpDown, LocateFixed } from 'lucide-react'
+import { MapPin, X, ArrowRight, ArrowUpDown, LocateFixed, Plus } from 'lucide-react'
 import { loadAddresses, saveAddress, clearAddress } from '../state'
 import { geocodeAutocomplete, geocodeReverse, type GeocodeSuggestion } from '../api/ors'
 
+export interface Waypoint {
+  id: number
+  label: string
+  lat: number
+  lng: number
+}
+
 interface Props {
-  onCheck: () => void
+  onCheck: (waypoints: Waypoint[]) => void
   loading: boolean
 }
 
@@ -55,6 +62,42 @@ function useAddressField(field: 'from' | 'to', onSaved: () => void, overrideValu
   }, [field, onSaved])
 
   return { value, setValue, suggestions, open, handleInput, handleSelect, handleClear, setOpen }
+}
+
+function useWaypointField(onSaved: () => void) {
+  const [value, setValue] = useState('')
+  const [suggestions, setSuggestions] = useState<GeocodeSuggestion[]>([])
+  const [open, setOpen] = useState(false)
+  const debounce = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    return () => { if (debounce.current) clearTimeout(debounce.current) }
+  }, [])
+
+  const handleInput = useCallback((text: string) => {
+    setValue(text)
+    if (debounce.current) clearTimeout(debounce.current)
+    if (text.length < 3) { setSuggestions([]); setOpen(false); return }
+    debounce.current = setTimeout(async () => {
+      try {
+        const results = await geocodeAutocomplete(text)
+        setSuggestions(results)
+        setOpen(results.length > 0)
+      } catch {
+        setOpen(false)
+      }
+    }, 300)
+  }, [])
+
+  const handleSelect = useCallback((s: GeocodeSuggestion) => {
+    setValue(s.label)
+    setSuggestions([])
+    setOpen(false)
+    onSaved()
+    return s
+  }, [onSaved])
+
+  return { value, setValue, suggestions, open, handleInput, handleSelect, setOpen }
 }
 
 function AddressField({
@@ -110,9 +153,7 @@ function AddressField({
     <div className="field" ref={wrapRef}>
       <span className="field-label">{label}</span>
       <div className="input-wrap">
-        <span className="input-icon">
-          <MapPin size={14} />
-        </span>
+        <span className="input-icon"><MapPin size={14} /></span>
         <input
           type="text"
           autoComplete="off"
@@ -151,6 +192,74 @@ function AddressField({
   )
 }
 
+function WaypointField({
+  id,
+  onResolved,
+  onRemove,
+}: {
+  id: number
+  onResolved: (id: number, s: GeocodeSuggestion) => void
+  onRemove: (id: number) => void
+}) {
+  const handleSaved = useCallback(() => {}, [])
+  const { value, setValue, suggestions, open, handleInput, handleSelect, setOpen } =
+    useWaypointField(handleSaved)
+  const wrapRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function onClickOutside(e: MouseEvent) {
+      if (!wrapRef.current?.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', onClickOutside)
+    return () => document.removeEventListener('mousedown', onClickOutside)
+  }, [setOpen])
+
+  return (
+    <div className="field waypoint-field" ref={wrapRef}>
+      <div className="waypoint-label-row">
+        <span className="field-label">via</span>
+        <button type="button" className="waypoint-remove-btn" aria-label="Remove waypoint" onClick={() => onRemove(id)}>
+          <X size={11} />
+        </button>
+      </div>
+      <div className="input-wrap">
+        <span className="input-icon"><MapPin size={14} /></span>
+        <input
+          type="text"
+          autoComplete="off"
+          placeholder="waypoint"
+          value={value}
+          onChange={(e) => handleInput(e.target.value)}
+          onKeyDown={(e) => e.key === 'Escape' && setOpen(false)}
+        />
+        {value && (
+          <button type="button" className="clear-btn" aria-label="Clear" onClick={() => setValue('')}>
+            <X size={13} />
+          </button>
+        )}
+      </div>
+      {open && (
+        <ul className="suggestions">
+          {suggestions.map((s) => (
+            <li
+              key={`${s.lat},${s.lng}`}
+              onMouseDown={(e) => {
+                e.preventDefault()
+                handleSelect(s)
+                onResolved(id, s)
+              }}
+            >
+              {s.label}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+}
+
+let nextId = 1
+
 export function AddressForm({ onCheck, loading }: Props) {
   const [canCheck, setCanCheck] = useState(() => {
     const { from, to } = loadAddresses()
@@ -158,13 +267,14 @@ export function AddressForm({ onCheck, loading }: Props) {
   })
   const [fromOverride, setFromOverride] = useState<string | undefined>()
   const [toOverride, setToOverride] = useState<string | undefined>()
+  const [waypointIds, setWaypointIds] = useState<number[]>([])
+  const waypointsRef = useRef<Map<number, Waypoint>>(new Map())
 
   const refreshCanCheck = useCallback(() => {
     const { from, to } = loadAddresses()
     setCanCheck(!!from && !!to)
   }, [])
 
-  // auto-detect on load if From is empty
   useEffect(() => {
     const { from } = loadAddresses()
     if (from || !navigator.geolocation) return
@@ -179,7 +289,7 @@ export function AddressForm({ onCheck, loading }: Props) {
           }
         } catch { /* silent */ }
       },
-      () => { /* denied — do nothing */ },
+      () => {},
       { timeout: 8000 },
     )
   }, [refreshCanCheck])
@@ -194,9 +304,27 @@ export function AddressForm({ onCheck, loading }: Props) {
     refreshCanCheck()
   }, [refreshCanCheck])
 
+  const addWaypoint = useCallback(() => {
+    setWaypointIds((ids) => [...ids, nextId++])
+  }, [])
+
+  const removeWaypoint = useCallback((id: number) => {
+    setWaypointIds((ids) => ids.filter((i) => i !== id))
+    waypointsRef.current.delete(id)
+  }, [])
+
+  const resolveWaypoint = useCallback((id: number, s: GeocodeSuggestion) => {
+    waypointsRef.current.set(id, { id, label: s.label, lat: s.lat, lng: s.lng })
+  }, [])
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!loading && canCheck) onCheck()
+    if (!loading && canCheck) {
+      const waypoints = waypointIds
+        .map((id) => waypointsRef.current.get(id))
+        .filter((w): w is Waypoint => w !== undefined)
+      onCheck(waypoints)
+    }
   }
 
   return (
@@ -215,6 +343,23 @@ export function AddressForm({ onCheck, loading }: Props) {
             <ArrowUpDown size={14} />
           </button>
         </div>
+
+        {waypointIds.map((id) => (
+          <WaypointField
+            key={id}
+            id={id}
+            onResolved={resolveWaypoint}
+            onRemove={removeWaypoint}
+          />
+        ))}
+
+        <div className="waypoint-add-row">
+          <button type="button" className="waypoint-add-btn" onClick={addWaypoint}>
+            <Plus size={12} />
+            add waypoint
+          </button>
+        </div>
+
         <AddressField
           label="to"
           placeholder="work address"

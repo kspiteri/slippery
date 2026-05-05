@@ -6,7 +6,7 @@ import { fetchWeather } from './api/met'
 import { buildElevationGrid } from './api/elevation'
 import { calculateSlipperiness, type SlippinessResult } from './logic/slipperiness'
 import { renderAsciiBackground } from './ui/ascii'
-import { AddressForm } from './ui/AddressForm'
+import { AddressForm, type Waypoint } from './ui/AddressForm'
 import { Verdict } from './ui/Verdict'
 import { AlertTriangle } from 'lucide-react'
 
@@ -46,7 +46,7 @@ export function App() {
     setTheme((t) => (t === 'dark' ? 'light' : 'dark'))
   }, [])
 
-  const handleCheck = useCallback(async () => {
+  const handleCheck = useCallback(async (waypoints: Waypoint[]) => {
     const { from, to } = loadAddresses()
     if (!from || !to) return
 
@@ -59,7 +59,7 @@ export function App() {
       const midLng = (from.lng + to.lng) / 2
 
       const [route, weather] = await Promise.all([
-        fetchRoute(from, to),
+        fetchRoute(from, to, waypoints),
         fetchWeather(midLat, midLng),
       ])
 

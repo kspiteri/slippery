@@ -58,7 +58,13 @@ export async function geocodeAutocomplete(text: string): Promise<GeocodeSuggesti
 export async function fetchRoute(
   from: { lat: number; lng: number },
   to: { lat: number; lng: number },
+  waypoints: { lat: number; lng: number }[] = [],
 ): Promise<RouteResult> {
+  const coords = [
+    [from.lng, from.lat],
+    ...waypoints.map((w) => [w.lng, w.lat]),
+    [to.lng, to.lat],
+  ]
   const res = await fetch('https://api.openrouteservice.org/v2/directions/cycling-regular/geojson', {
     method: 'POST',
     headers: {
@@ -66,10 +72,7 @@ export async function fetchRoute(
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      coordinates: [
-        [from.lng, from.lat],
-        [to.lng, to.lat],
-      ],
+      coordinates: coords,
       elevation: true,
       extra_info: ['surface'],
     }),
