@@ -1,5 +1,7 @@
 const ORS_KEY = import.meta.env.VITE_ORS_KEY as string
 
+const GEO_HEADERS = { 'Authorization': ORS_KEY }
+
 export interface GeocodeSuggestion {
   label: string
   lat: number
@@ -14,16 +16,33 @@ export interface RouteResult {
   durationMin: number
 }
 
+export async function geocodeReverse(lat: number, lng: number): Promise<GeocodeSuggestion | null> {
+  const url = new URL('https://api.openrouteservice.org/geocode/reverse')
+  url.searchParams.set('point.lon', String(lng))
+  url.searchParams.set('point.lat', String(lat))
+  url.searchParams.set('size', '1')
+
+  const res = await fetch(url.toString(), { headers: GEO_HEADERS })
+  if (!res.ok) return null
+  const data = await res.json()
+  const f = data.features?.[0]
+  if (!f) return null
+  return {
+    label: f.properties.label,
+    lat: f.geometry.coordinates[1],
+    lng: f.geometry.coordinates[0],
+  }
+}
+
 export async function geocodeAutocomplete(text: string): Promise<GeocodeSuggestion[]> {
   const url = new URL('https://api.openrouteservice.org/geocode/autocomplete')
-  url.searchParams.set('api_key', ORS_KEY)
   url.searchParams.set('text', text)
   url.searchParams.set('boundary.country', 'NO')
   url.searchParams.set('focus.point.lon', '5.3221')
   url.searchParams.set('focus.point.lat', '60.3913')
   url.searchParams.set('size', '5')
 
-  const res = await fetch(url.toString())
+  const res = await fetch(url.toString(), { headers: GEO_HEADERS })
   if (!res.ok) throw new Error(`Geocode failed: ${res.status}`)
   const data = await res.json()
 
@@ -72,13 +91,29 @@ export async function fetchRoute(
 
   const surfaceExtra = feature.properties.extras?.surface
   if (surfaceExtra?.values) {
-    for (const [start, end, code] of surfaceExtra.values) {
+    for (const [startIdx, endIdx, code] of surfaceExtra.values) {
       const name = SURFACE_NAMES[code] ?? 'unknown'
-      surfaceCounts[name] = (surfaceCounts[name] ?? 0) + (end - start)
+      // sum actual segment distances (metres) between coordinate points
+      let dist = 0
+      for (let i = startIdx; i < endIdx && i + 1 < coordinates.length; i++) {
+        dist += segmentDistanceM(coordinates[i], coordinates[i + 1])
+      }
+      surfaceCounts[name] = (surfaceCounts[name] ?? 0) + dist
     }
   }
 
   const dominantSurface = Object.entries(surfaceCounts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'unknown'
 
   return { coordinates, surfaceCounts, dominantSurface, distanceKm, durationMin }
+}
+
+function segmentDistanceM(
+  a: [number, number, number],
+  b: [number, number, number],
+): number {
+  const R = 6371000
+  const dLat = (b[1] - a[1]) * Math.PI / 180
+  const dLng = (b[0] - a[0]) * Math.PI / 180
+  const lat = (a[1] + b[1]) / 2 * Math.PI / 180
+  return Math.sqrt(dLat * dLat + (dLng * Math.cos(lat)) ** 2) * R
 }

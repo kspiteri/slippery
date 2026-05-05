@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { MapPin, X, ArrowRight, ArrowUpDown } from 'lucide-react'
-import { loadAddresses, saveAddress, clearAddress, type SavedAddress } from '../state'
-import { geocodeAutocomplete, type GeocodeSuggestion } from '../api/ors'
+import { MapPin, X, ArrowRight, ArrowUpDown, LocateFixed } from 'lucide-react'
+import { loadAddresses, saveAddress, clearAddress } from '../state'
+import { geocodeAutocomplete, geocodeReverse, type GeocodeSuggestion } from '../api/ors'
 
 interface Props {
   onCheck: () => void
@@ -15,10 +15,9 @@ function useAddressField(field: 'from' | 'to', onSaved: () => void, overrideValu
   const [open, setOpen] = useState(false)
   const debounce = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // allow parent to push a new value in (used by swap)
   useEffect(() => {
-    if (overrideValue !== undefined) setValue(overrideValue)
-  }, [overrideValue])
+    return () => { if (debounce.current) clearTimeout(debounce.current) }
+  }, [])
 
   const handleInput = useCallback((text: string) => {
     setValue(text)
@@ -51,7 +50,7 @@ function useAddressField(field: 'from' | 'to', onSaved: () => void, overrideValu
     onSaved()
   }, [field, onSaved])
 
-  return { value, suggestions, open, handleInput, handleSelect, handleClear, setOpen }
+  return { value, setValue, suggestions, open, handleInput, handleSelect, handleClear, setOpen }
 }
 
 function AddressField({
@@ -60,16 +59,19 @@ function AddressField({
   field,
   onSaved,
   overrideValue,
+  showLocate,
 }: {
   label: string
   placeholder: string
   field: 'from' | 'to'
   onSaved: () => void
   overrideValue?: string
+  showLocate?: boolean
 }) {
-  const { value, suggestions, open, handleInput, handleSelect, handleClear, setOpen } =
+  const { value, setValue, suggestions, open, handleInput, handleSelect, handleClear, setOpen } =
     useAddressField(field, onSaved, overrideValue)
   const wrapRef = useRef<HTMLDivElement>(null)
+  const [locating, setLocating] = useState(false)
 
   useEffect(() => {
     function onClickOutside(e: MouseEvent) {
@@ -78,6 +80,27 @@ function AddressField({
     document.addEventListener('mousedown', onClickOutside)
     return () => document.removeEventListener('mousedown', onClickOutside)
   }, [setOpen])
+
+  const handleLocate = useCallback(async () => {
+    if (!navigator.geolocation) return
+    setLocating(true)
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          const result = await geocodeReverse(pos.coords.latitude, pos.coords.longitude)
+          if (result) {
+            setValue(result.label)
+            saveAddress(field, { label: result.label, lat: result.lat, lng: result.lng })
+            onSaved()
+          }
+        } finally {
+          setLocating(false)
+        }
+      },
+      () => setLocating(false),
+      { timeout: 8000 },
+    )
+  }, [field, onSaved, setValue])
 
   return (
     <div className="field" ref={wrapRef}>
@@ -94,6 +117,17 @@ function AddressField({
           onChange={(e) => handleInput(e.target.value)}
           onKeyDown={(e) => e.key === 'Escape' && setOpen(false)}
         />
+        {showLocate && (
+          <button
+            type="button"
+            className={`locate-btn${locating ? ' locating' : ''}`}
+            aria-label="Use current location"
+            onClick={handleLocate}
+            disabled={locating}
+          >
+            {locating ? <span className="locate-spinner" /> : <LocateFixed size={13} />}
+          </button>
+        )}
         {value && (
           <button type="button" className="clear-btn" aria-label="Clear" onClick={handleClear}>
             <X size={13} />
@@ -118,7 +152,6 @@ export function AddressForm({ onCheck, loading }: Props) {
     const { from, to } = loadAddresses()
     return !!from && !!to
   })
-  // swapKey forces AddressField to re-read labels from storage after a swap
   const [fromOverride, setFromOverride] = useState<string | undefined>()
   const [toOverride, setToOverride] = useState<string | undefined>()
 
@@ -127,13 +160,31 @@ export function AddressForm({ onCheck, loading }: Props) {
     setCanCheck(!!from && !!to)
   }, [])
 
+  // auto-detect on load if From is empty
+  useEffect(() => {
+    const { from } = loadAddresses()
+    if (from || !navigator.geolocation) return
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          const result = await geocodeReverse(pos.coords.latitude, pos.coords.longitude)
+          if (result) {
+            saveAddress('from', { label: result.label, lat: result.lat, lng: result.lng })
+            setFromOverride(result.label)
+            refreshCanCheck()
+          }
+        } catch { /* silent */ }
+      },
+      () => { /* denied — do nothing */ },
+      { timeout: 8000 },
+    )
+  }, [refreshCanCheck])
+
   const handleSwap = useCallback(() => {
     const { from, to } = loadAddresses()
     if (!from && !to) return
-    // swap in storage
     if (to) { saveAddress('from', to) } else { clearAddress('from') }
     if (from) { saveAddress('to', from) } else { clearAddress('to') }
-    // push new labels into inputs
     setFromOverride(to?.label ?? '')
     setToOverride(from?.label ?? '')
     refreshCanCheck()
@@ -153,6 +204,7 @@ export function AddressForm({ onCheck, loading }: Props) {
           field="from"
           onSaved={refreshCanCheck}
           overrideValue={fromOverride}
+          showLocate
         />
         <div className="swap-row">
           <button type="button" className="swap-btn" onClick={handleSwap} aria-label="Swap addresses">
