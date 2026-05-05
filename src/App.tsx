@@ -1,5 +1,7 @@
 import { useState, useCallback, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Sun, Moon } from 'lucide-react'
+import i18n from './i18n'
 import { loadAddresses } from './state'
 import { fetchRoute } from './api/ors'
 import { fetchWeatherAll } from './api/met'
@@ -38,6 +40,7 @@ function getInitialTheme(): Theme {
 }
 
 export function App() {
+  const { t } = useTranslation()
   const [theme, setTheme] = useState<Theme>(getInitialTheme)
   const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle')
   const [error, setError] = useState('')
@@ -50,6 +53,12 @@ export function App() {
 
   const toggleTheme = useCallback(() => {
     setTheme((t) => (t === 'dark' ? 'light' : 'dark'))
+  }, [])
+
+  const toggleLang = useCallback(() => {
+    const next = i18n.language === 'no' ? 'en' : 'no'
+    i18n.changeLanguage(next)
+    localStorage.setItem('slippery_lang', next)
   }, [])
 
   const handleCheck = useCallback(async (waypoints: Waypoint[]) => {
@@ -104,18 +113,21 @@ export function App() {
       <header className="app-header">
         <div className="header-title">
           <h1>slippery</h1>
-          <p className="subtitle">bergen bike conditions</p>
+          <p className="subtitle">{t('app.subtitle')}</p>
         </div>
-        <button className="theme-btn" onClick={toggleTheme} aria-label="Toggle theme">
-          {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
-        </button>
+        <div className="header-actions">
+          <button className="lang-btn" onClick={toggleLang}>{t('header.toggleLang')}</button>
+          <button className="theme-btn" onClick={toggleTheme} aria-label={t('header.toggleTheme')}>
+            {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+          </button>
+        </div>
       </header>
       <main>
         <AddressForm onCheck={handleCheck} loading={status === 'loading'} />
         {status === 'loading' && (
           <div className="loading-state">
             <div className="spinner" />
-            fetching route &amp; conditions…
+            {t('app.loading')}
           </div>
         )}
         {status === 'error' && (

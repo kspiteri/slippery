@@ -1,0 +1,75 @@
+import type { Translations } from './en'
+
+const no: Translations = {
+  app: {
+    subtitle: 'sykkelforhold i bergen',
+    loading: 'henter rute og forhold…',
+  },
+  header: {
+    toggleTheme: 'Bytt tema',
+    toggleLang: 'Switch to English',
+  },
+  form: {
+    from: 'fra',
+    to: 'til',
+    via: 'via',
+    placeholderFrom: 'hjemmeadresse',
+    placeholderTo: 'jobbadresse',
+    placeholderWaypoint: 'veipunkt',
+    addWaypoint: 'legg til veipunkt',
+    swap: 'bytt',
+    checkRoute: 'sjekk rute',
+    checking: 'sjekker…',
+    useLocation: 'Bruk nåværende posisjon',
+    clear: 'Tøm',
+  },
+  verdict: {
+    roadConditions: 'veiforhold',
+    gear: 'utstyr',
+    normalTyres: 'Vanlige dekk',
+    studdedTyres: 'Piggdekk',
+    jacket: 'Vanntett jakke',
+    tabNow: 'Nå',
+    tabPlus2h: '+2t',
+    tabPlus8h: '+8t',
+  },
+  risk: {
+    clear: 'Greit',
+    caution: 'Forsiktig',
+    high: 'Høy risiko',
+    dont_ride: 'Ikke sykle',
+  },
+  jacket: {
+    yes: 'Ta med jakke',
+    maybe: 'Kanskje jakke',
+    no: 'Ingen jakke nødvendig',
+  },
+  pill: {
+    tempNow: '{{temp}} °C nå',
+    tempIn2h: '{{temp}} °C om 2t',
+    tempIn8h: '{{temp}} °C om 8t',
+    low: 'lavest {{temp}} °C',
+    precipNow: '{{type}} {{mm}} mm nå',
+    precipAt2h: '{{type}} {{mm}} mm om 2t',
+    precipAt8h: '{{type}} {{mm}} mm om 8t',
+    rainNext3h: '{{mm}} mm neste 3t',
+    rainFrom2h: '{{mm}} mm 3t fra +2t',
+    rainFrom8h: '{{mm}} mm 3t fra +8t',
+    iceAlert: 'Aktiv værvarsel',
+  },
+  factor: {
+    overnight_low: 'temperaturen falt til {{temp}} °C i natt',
+    hard_freeze: 'hard frost i natt',
+    cold_current: 'nå {{temp}} °C',
+    thaw: 'tining etter frost (glattisfare)',
+    snow_precip: 'snø ({{mm}} mm)',
+    sleet_precip: 'sludd ({{mm}} mm)',
+    rain_cold: 'regn ({{mm}} mm) på kald vei',
+    cobblestone: 'brosteinsbelagt vei',
+    surface: '{{surface}}-underlag',
+    ice_alert: 'aktivt is-/værvarsler',
+    clear: 'veiene ser fine ut',
+  },
+}
+
+export default no

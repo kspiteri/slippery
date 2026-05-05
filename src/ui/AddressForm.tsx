@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { MapPin, X, ArrowRight, ArrowUpDown, LocateFixed, Plus } from 'lucide-react'
 import { loadAddresses, saveAddress, clearAddress, saveWaypoints, type SavedAddress } from '../state'
 import { geocodeAutocomplete, geocodeReverse, type GeocodeSuggestion } from '../api/ors'
@@ -203,6 +204,7 @@ function WaypointField({
   onRemove: (id: number) => void
   initialValue?: SavedAddress
 }) {
+  const { t } = useTranslation()
   const handleSaved = useCallback(() => {}, [])
   const { value, setValue, suggestions, open, handleInput, handleSelect, setOpen } =
     useWaypointField(handleSaved, initialValue?.label)
@@ -219,7 +221,7 @@ function WaypointField({
   return (
     <div className="field waypoint-field" ref={wrapRef}>
       <div className="waypoint-label-row">
-        <span className="field-label">via</span>
+        <span className="field-label">{t('form.via')}</span>
         <button type="button" className="waypoint-remove-btn" aria-label="Remove waypoint" onClick={() => onRemove(id)}>
           <X size={11} />
         </button>
@@ -229,13 +231,13 @@ function WaypointField({
         <input
           type="text"
           autoComplete="off"
-          placeholder="waypoint"
+          placeholder={t('form.placeholderWaypoint')}
           value={value}
           onChange={(e) => handleInput(e.target.value)}
           onKeyDown={(e) => e.key === 'Escape' && setOpen(false)}
         />
         {value && (
-          <button type="button" className="clear-btn" aria-label="Clear" onClick={() => setValue('')}>
+          <button type="button" className="clear-btn" aria-label={t('form.clear')} onClick={() => setValue('')}>
             <X size={13} />
           </button>
         )}
@@ -265,6 +267,7 @@ let nextId = 1
 interface WaypointEntry { id: number; initial?: SavedAddress }
 
 export function AddressForm({ onCheck, loading }: Props) {
+  const { t } = useTranslation()
   const [canCheck, setCanCheck] = useState(() => {
     const { from, to } = loadAddresses()
     return !!from && !!to
@@ -358,8 +361,8 @@ export function AddressForm({ onCheck, loading }: Props) {
     <form id="route-form" onSubmit={handleSubmit}>
       <div className="fields">
         <AddressField
-          label="from"
-          placeholder="home address"
+          label={t('form.from')}
+          placeholder={t('form.placeholderFrom')}
           field="from"
           onSaved={refreshCanCheck}
           overrideValue={fromOverride}
@@ -379,26 +382,26 @@ export function AddressForm({ onCheck, loading }: Props) {
         <div className="waypoint-add-row">
           <button type="button" className="waypoint-add-btn" onClick={addWaypoint}>
             <Plus size={12} />
-            add waypoint
+            {t('form.addWaypoint')}
           </button>
         </div>
 
         <AddressField
-          label="to"
-          placeholder="work address"
+          label={t('form.to')}
+          placeholder={t('form.placeholderTo')}
           field="to"
           onSaved={refreshCanCheck}
           overrideValue={toOverride}
         />
       </div>
       <div className="form-actions">
-        <button type="button" className="swap-btn" onClick={handleSwap} aria-label="Swap addresses">
+        <button type="button" className="swap-btn" onClick={handleSwap} aria-label={t('form.swap')}>
           <ArrowUpDown size={14} />
-          swap
+          {t('form.swap')}
         </button>
         <button type="submit" id="go-btn" disabled={loading || !canCheck}>
           <ArrowRight size={15} />
-          {loading ? 'checking…' : 'check route'}
+          {loading ? t('form.checking') : t('form.checkRoute')}
         </button>
       </div>
     </form>

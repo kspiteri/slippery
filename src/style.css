@@ -94,6 +94,32 @@ html, body {
   font-family: var(--font-mono);
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.lang-btn {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 6px 10px;
+  font-size: 0.72rem;
+  font-family: var(--font-mono);
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+  backdrop-filter: blur(8px);
+  white-space: nowrap;
+}
+
+.lang-btn:hover {
+  color: var(--text);
+  border-color: var(--border-focus);
+}
+
 .theme-btn {
   background: var(--bg-elevated);
   border: 1px solid var(--border);
@@ -106,7 +132,6 @@ html, body {
   justify-content: center;
   transition: color 0.15s, border-color 0.15s, background 0.15s;
   backdrop-filter: blur(8px);
-  flex-shrink: 0;
 }
 
 .theme-btn:hover {

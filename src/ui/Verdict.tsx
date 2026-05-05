@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Bike, Clock, Thermometer, Droplets, AlertTriangle,
   Snowflake, Wind, Shirt, CheckCircle, Route, CircleDot,
@@ -6,18 +7,18 @@ import {
 import type { SlippinessResult, RiskLevel } from '../logic/slipperiness'
 import type { RouteState } from '../App'
 
-const RISK_LABELS: Record<RiskLevel, string> = {
-  'clear': 'Clear',
-  'caution': 'Caution',
-  'high': 'High risk',
-  'dont-ride': "Don't ride",
-}
-
 const RISK_COLOURS: Record<RiskLevel, string> = {
   'clear': '#3fb950',
   'caution': '#d29922',
   'high': '#f0883e',
   'dont-ride': '#f85149',
+}
+
+const RISK_KEYS: Record<RiskLevel, string> = {
+  'clear': 'risk.clear',
+  'caution': 'risk.caution',
+  'high': 'risk.high',
+  'dont-ride': 'risk.dont_ride',
 }
 
 interface Props {
@@ -29,11 +30,12 @@ interface Props {
 type Tab = 'now' | 'plus2h' | 'plus8h'
 
 function StatusBadge({ risk }: { risk: RiskLevel }) {
+  const { t } = useTranslation()
   const color = RISK_COLOURS[risk]
   return (
     <span className="status-badge" style={{ '--badge-color': color } as React.CSSProperties}>
       <span className="status-dot" />
-      {RISK_LABELS[risk]}
+      {t(RISK_KEYS[risk])}
     </span>
   )
 }
@@ -52,10 +54,10 @@ function jacketVerdict(rainNextHours: number, recentPrecipMm: number, precipType
   return 'no'
 }
 
-const JACKET_LABELS: Record<JacketVerdict, string> = {
-  yes: 'Bring a jacket',
-  maybe: 'Maybe a jacket',
-  no: 'No jacket needed',
+const JACKET_KEYS: Record<JacketVerdict, string> = {
+  yes: 'jacket.yes',
+  maybe: 'jacket.maybe',
+  no: 'jacket.no',
 }
 
 const JACKET_COLOURS: Record<JacketVerdict, string> = {
@@ -65,73 +67,78 @@ const JACKET_COLOURS: Record<JacketVerdict, string> = {
 }
 
 function VerdictPanel({ data, tab }: { data: RouteState; tab: Tab }) {
+  const { t } = useTranslation()
   const { slipperiness, recentPrecipMm, precipType, rainNextHours,
           overnightLow, hasIceAlert } = data
   const jacket = jacketVerdict(rainNextHours, recentPrecipMm, precipType)
   const jacketColor = JACKET_COLOURS[jacket]
   const JacketIcon = jacket === 'no' ? CheckCircle : Shirt
 
-  const tempLabel  = tab === 'now' ? 'now' : tab === 'plus2h' ? 'in 2h' : 'in 8h'
-  const precipLabel = tab === 'now' ? 'now' : tab === 'plus2h' ? 'at +2h' : 'at +8h'
-  const rainLabel  = tab === 'now' ? 'next 3h' : tab === 'plus2h' ? '3h from +2h' : '3h from +8h'
+  const tempKey   = tab === 'now' ? 'pill.tempNow'   : tab === 'plus2h' ? 'pill.tempIn2h'   : 'pill.tempIn8h'
+  const precipKey = tab === 'now' ? 'pill.precipNow' : tab === 'plus2h' ? 'pill.precipAt2h' : 'pill.precipAt8h'
+  const rainKey   = tab === 'now' ? 'pill.rainNext3h' : tab === 'plus2h' ? 'pill.rainFrom2h' : 'pill.rainFrom8h'
+
+  const factorText = slipperiness.factors
+    .map((f) => t(f.key, f.params))
+    .join(', ')
 
   return (
     <>
       <div className="verdict-summary">
         <CircleDot size={13} className="summary-icon" />
-        <span>{slipperiness.reason}</span>
+        <span>{factorText}</span>
       </div>
 
       <div className="verdict-body">
-        <div className="verdict-section-label">road conditions</div>
+        <div className="verdict-section-label">{t('verdict.roadConditions')}</div>
         <div className="tyres-grid">
           <div className="tyre-row">
-            <span className="tyre-label-group">Normal tyres</span>
+            <span className="tyre-label-group">{t('verdict.normalTyres')}</span>
             <StatusBadge risk={slipperiness.normalRisk} />
           </div>
           <div className="tyre-row">
-            <span className="tyre-label-group">Studded tyres</span>
+            <span className="tyre-label-group">{t('verdict.studdedTyres')}</span>
             <StatusBadge risk={slipperiness.studdedRisk} />
           </div>
         </div>
 
-        <div className="verdict-section-label">gear</div>
+        <div className="verdict-section-label">{t('verdict.gear')}</div>
         <div
           className="jacket-row"
           style={{ '--jacket-color': jacketColor } as React.CSSProperties}
         >
           <span className="jacket-label-group">
             <JacketIcon size={14} className="jacket-icon" />
-            Waterproof jacket
+            {t('verdict.jacket')}
           </span>
-          <span className="jacket-chip">{JACKET_LABELS[jacket]}</span>
+          <span className="jacket-chip">{t(JACKET_KEYS[jacket])}</span>
         </div>
 
         <div className="weather-pills">
           <span className="weather-pill">
             <Thermometer size={11} />
-            {data.currentTemp.toFixed(1)} °C {tempLabel}
+            {t(tempKey, { temp: data.currentTemp.toFixed(1) })}
           </span>
           <span className="weather-pill">
             <Thermometer size={11} />
-            low {overnightLow.toFixed(1)} °C
+            {t('pill.low', { temp: overnightLow.toFixed(1) })}
           </span>
           {recentPrecipMm > 0.1 && (
             <span className="weather-pill">
               <PrecipIcon type={precipType} />
-              {precipType} {recentPrecipMm.toFixed(1)} mm {precipLabel}
+              {t(precipKey, { type: precipType, mm: recentPrecipMm.toFixed(1) })}
             </span>
           )}
           {rainNextHours > 0.1 && (
             <span className="weather-pill">
               <Droplets size={11} />
-              {rainNextHours.toFixed(1)} mm {rainLabel}
+              {t(rainKey, { mm: rainNextHours.toFixed(1) })}
             </span>
           )}
           {hasIceAlert && (
             <span className="weather-pill alert-pill">
               <AlertTriangle size={11} />
-              Active weather warning
+              {t('pill.iceAlert')}
             </span>
           )}
         </div>
@@ -141,6 +148,7 @@ function VerdictPanel({ data, tab }: { data: RouteState; tab: Tab }) {
 }
 
 export function Verdict({ now, plus2h, plus8h }: Props) {
+  const { t } = useTranslation()
   const [tab, setTab] = useState<Tab>('now')
   const active = tab === 'now' ? now : tab === 'plus2h' ? plus2h : plus8h
 
@@ -153,9 +161,9 @@ export function Verdict({ now, plus2h, plus8h }: Props) {
       </div>
 
       <div className="verdict-tabs">
-        <button className={`verdict-tab${tab === 'now' ? ' active' : ''}`} onClick={() => setTab('now')}>Now</button>
-        <button className={`verdict-tab${tab === 'plus2h' ? ' active' : ''}`} onClick={() => setTab('plus2h')}>+2h</button>
-        <button className={`verdict-tab${tab === 'plus8h' ? ' active' : ''}`} onClick={() => setTab('plus8h')}>+8h</button>
+        <button className={`verdict-tab${tab === 'now' ? ' active' : ''}`} onClick={() => setTab('now')}>{t('verdict.tabNow')}</button>
+        <button className={`verdict-tab${tab === 'plus2h' ? ' active' : ''}`} onClick={() => setTab('plus2h')}>{t('verdict.tabPlus2h')}</button>
+        <button className={`verdict-tab${tab === 'plus8h' ? ' active' : ''}`} onClick={() => setTab('plus8h')}>{t('verdict.tabPlus8h')}</button>
       </div>
 
       <VerdictPanel data={active} tab={tab} />
