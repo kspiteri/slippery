@@ -68,7 +68,7 @@ const en = {
     ice_alert: 'active ice/weather warning',
     clear: 'roads look clear',
   },
-} as const
+}
 
 export default en
 export type Translations = typeof en
