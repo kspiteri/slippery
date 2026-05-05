@@ -7,6 +7,7 @@ export interface SavedAddress {
 export interface SavedAddresses {
   from: SavedAddress | null
   to: SavedAddress | null
+  waypoints: SavedAddress[]
 }
 
 const KEY = 'slippery_addresses'
@@ -14,10 +15,15 @@ const KEY = 'slippery_addresses'
 export function loadAddresses(): SavedAddresses {
   try {
     const raw = localStorage.getItem(KEY)
-    if (!raw) return { from: null, to: null }
-    return JSON.parse(raw) as SavedAddresses
+    if (!raw) return { from: null, to: null, waypoints: [] }
+    const parsed = JSON.parse(raw) as Partial<SavedAddresses>
+    return {
+      from: parsed.from ?? null,
+      to: parsed.to ?? null,
+      waypoints: parsed.waypoints ?? [],
+    }
   } catch {
-    return { from: null, to: null }
+    return { from: null, to: null, waypoints: [] }
   }
 }
 
@@ -30,5 +36,11 @@ export function saveAddress(field: 'from' | 'to', address: SavedAddress): void {
 export function clearAddress(field: 'from' | 'to'): void {
   const current = loadAddresses()
   current[field] = null
+  localStorage.setItem(KEY, JSON.stringify(current))
+}
+
+export function saveWaypoints(waypoints: SavedAddress[]): void {
+  const current = loadAddresses()
+  current.waypoints = waypoints
   localStorage.setItem(KEY, JSON.stringify(current))
 }

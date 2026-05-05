@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { MapPin, X, ArrowRight, ArrowUpDown, LocateFixed, Plus } from 'lucide-react'
-import { loadAddresses, saveAddress, clearAddress } from '../state'
+import { loadAddresses, saveAddress, clearAddress, saveWaypoints, type SavedAddress } from '../state'
 import { geocodeAutocomplete, geocodeReverse, type GeocodeSuggestion } from '../api/ors'
 
 export interface Waypoint {
@@ -64,8 +64,8 @@ function useAddressField(field: 'from' | 'to', onSaved: () => void, overrideValu
   return { value, setValue, suggestions, open, handleInput, handleSelect, handleClear, setOpen }
 }
 
-function useWaypointField(onSaved: () => void) {
-  const [value, setValue] = useState('')
+function useWaypointField(onSaved: () => void, initialLabel = '') {
+  const [value, setValue] = useState(initialLabel)
   const [suggestions, setSuggestions] = useState<GeocodeSuggestion[]>([])
   const [open, setOpen] = useState(false)
   const debounce = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -196,14 +196,16 @@ function WaypointField({
   id,
   onResolved,
   onRemove,
+  initialValue,
 }: {
   id: number
   onResolved: (id: number, s: GeocodeSuggestion) => void
   onRemove: (id: number) => void
+  initialValue?: SavedAddress
 }) {
   const handleSaved = useCallback(() => {}, [])
   const { value, setValue, suggestions, open, handleInput, handleSelect, setOpen } =
-    useWaypointField(handleSaved)
+    useWaypointField(handleSaved, initialValue?.label)
   const wrapRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -260,6 +262,8 @@ function WaypointField({
 
 let nextId = 1
 
+interface WaypointEntry { id: number; initial?: SavedAddress }
+
 export function AddressForm({ onCheck, loading }: Props) {
   const [canCheck, setCanCheck] = useState(() => {
     const { from, to } = loadAddresses()
@@ -267,8 +271,22 @@ export function AddressForm({ onCheck, loading }: Props) {
   })
   const [fromOverride, setFromOverride] = useState<string | undefined>()
   const [toOverride, setToOverride] = useState<string | undefined>()
-  const [waypointIds, setWaypointIds] = useState<number[]>([])
+  const [waypoints, setWaypoints] = useState<WaypointEntry[]>(() => {
+    const saved = loadAddresses().waypoints
+    return saved.map((w) => ({ id: nextId++, initial: w }))
+  })
   const waypointsRef = useRef<Map<number, Waypoint>>(new Map())
+
+  // Pre-populate ref from saved waypoints on mount
+  useEffect(() => {
+    const saved = loadAddresses().waypoints
+    waypoints.forEach((entry, i) => {
+      const w = saved[i]
+      if (w) waypointsRef.current.set(entry.id, { id: entry.id, ...w })
+    })
+  // Only run once on mount
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const refreshCanCheck = useCallback(() => {
     const { from, to } = loadAddresses()
@@ -305,25 +323,34 @@ export function AddressForm({ onCheck, loading }: Props) {
   }, [refreshCanCheck])
 
   const addWaypoint = useCallback(() => {
-    setWaypointIds((ids) => [...ids, nextId++])
+    setWaypoints((prev) => [...prev, { id: nextId++ }])
   }, [])
 
   const removeWaypoint = useCallback((id: number) => {
-    setWaypointIds((ids) => ids.filter((i) => i !== id))
-    waypointsRef.current.delete(id)
+    setWaypoints((prev) => {
+      const next = prev.filter((w) => w.id !== id)
+      waypointsRef.current.delete(id)
+      saveWaypoints(
+        next.map((w) => waypointsRef.current.get(w.id)).filter((w): w is Waypoint => !!w),
+      )
+      return next
+    })
   }, [])
 
   const resolveWaypoint = useCallback((id: number, s: GeocodeSuggestion) => {
     waypointsRef.current.set(id, { id, label: s.label, lat: s.lat, lng: s.lng })
+    saveWaypoints(
+      Array.from(waypointsRef.current.values()),
+    )
   }, [])
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!loading && canCheck) {
-      const waypoints = waypointIds
-        .map((id) => waypointsRef.current.get(id))
+      const resolved = waypoints
+        .map((w) => waypointsRef.current.get(w.id))
         .filter((w): w is Waypoint => w !== undefined)
-      onCheck(waypoints)
+      onCheck(resolved)
     }
   }
 
@@ -339,12 +366,13 @@ export function AddressForm({ onCheck, loading }: Props) {
           showLocate
         />
 
-        {waypointIds.map((id) => (
+        {waypoints.map((entry) => (
           <WaypointField
-            key={id}
-            id={id}
+            key={entry.id}
+            id={entry.id}
             onResolved={resolveWaypoint}
             onRemove={removeWaypoint}
+            initialValue={entry.initial}
           />
         ))}
 
