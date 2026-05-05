@@ -1,7 +1,5 @@
 const ORS_KEY = import.meta.env.VITE_ORS_KEY as string
 
-const GEO_HEADERS = { 'Authorization': ORS_KEY }
-
 export interface GeocodeSuggestion {
   label: string
   lat: number
@@ -18,11 +16,12 @@ export interface RouteResult {
 
 export async function geocodeReverse(lat: number, lng: number): Promise<GeocodeSuggestion | null> {
   const url = new URL('https://api.openrouteservice.org/geocode/reverse')
+  url.searchParams.set('api_key', ORS_KEY)
   url.searchParams.set('point.lon', String(lng))
   url.searchParams.set('point.lat', String(lat))
   url.searchParams.set('size', '1')
 
-  const res = await fetch(url.toString(), { headers: GEO_HEADERS })
+  const res = await fetch(url.toString())
   if (!res.ok) return null
   const data = await res.json()
   const f = data.features?.[0]
@@ -36,13 +35,14 @@ export async function geocodeReverse(lat: number, lng: number): Promise<GeocodeS
 
 export async function geocodeAutocomplete(text: string): Promise<GeocodeSuggestion[]> {
   const url = new URL('https://api.openrouteservice.org/geocode/autocomplete')
+  url.searchParams.set('api_key', ORS_KEY)
   url.searchParams.set('text', text)
   url.searchParams.set('boundary.country', 'NO')
   url.searchParams.set('focus.point.lon', '5.3221')
   url.searchParams.set('focus.point.lat', '60.3913')
   url.searchParams.set('size', '5')
 
-  const res = await fetch(url.toString(), { headers: GEO_HEADERS })
+  const res = await fetch(url.toString())
   if (!res.ok) throw new Error(`Geocode failed: ${res.status}`)
   const data = await res.json()
 

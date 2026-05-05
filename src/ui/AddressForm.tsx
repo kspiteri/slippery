@@ -19,6 +19,10 @@ function useAddressField(field: 'from' | 'to', onSaved: () => void, overrideValu
     return () => { if (debounce.current) clearTimeout(debounce.current) }
   }, [])
 
+  useEffect(() => {
+    if (overrideValue !== undefined) setValue(overrideValue)
+  }, [overrideValue])
+
   const handleInput = useCallback((text: string) => {
     setValue(text)
     if (debounce.current) clearTimeout(debounce.current)
@@ -137,7 +141,7 @@ function AddressField({
       {open && (
         <ul className="suggestions">
           {suggestions.map((s) => (
-            <li key={s.label} onMouseDown={(e) => { e.preventDefault(); handleSelect(s) }}>
+            <li key={`${s.lat},${s.lng}`} onMouseDown={(e) => { e.preventDefault(); handleSelect(s) }}>
               {s.label}
             </li>
           ))}
