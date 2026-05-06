@@ -25,9 +25,12 @@ interface ForecastTimestep {
 }
 
 export async function fetchWeatherAll(lat: number, lng: number): Promise<WeatherSnapshot> {
+  // MET requires <= 4 decimals; raw ORS coords have 6+, which triggers 403
+  const safeLat = Number(lat.toFixed(4))
+  const safeLng = Number(lng.toFixed(4))
   const [forecast, alerts] = await Promise.all([
-    fetchForecast(lat, lng),
-    fetchAlerts(lat, lng),
+    fetchForecast(safeLat, safeLng),
+    fetchAlerts(safeLat, safeLng),
   ])
 
   return {

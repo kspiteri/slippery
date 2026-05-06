@@ -227,13 +227,20 @@ function VerdictPanel({ data, tab }: { data: RouteState; tab: Tab }) {
 
   const factorText = slipperiness.factors
     .map((f) => t(f.key, f.params))
-    .join(', ')
+    .join(' · ')
+
+  const headingText = data.sampleSource === 'midpoint'
+    ? t('verdict.conditions')
+    : t('verdict.conditionsAt', { point: t(`sample.${data.sampleSource}`) })
 
   return (
     <>
       <div className="verdict-summary">
-        <CircleDot size={13} className="summary-icon" />
-        <span>{factorText}</span>
+        <div className="verdict-summary-heading">{headingText}</div>
+        <div className="verdict-summary-body">
+          <CircleDot size={13} className="summary-icon" />
+          <span className="summary-text">{factorText}</span>
+        </div>
       </div>
 
       <div className="verdict-body">

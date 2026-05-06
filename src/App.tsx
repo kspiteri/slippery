@@ -13,6 +13,7 @@ import { Verdict } from './ui/Verdict'
 import { AlertTriangle } from 'lucide-react'
 import { withRetry } from './lib/retry'
 import { getCached, setCached } from './cache'
+import { needsMultiPointSampling, sampleCoordinates, aggregateSnapshots, type SamplePoint } from './logic/weatherSampling'
 
 export interface RouteState {
   slipperiness: SlippinessResult
@@ -26,6 +27,7 @@ export interface RouteState {
   precipType: string
   rainNextHours: number
   hasIceAlert: boolean
+  sampleSource: SamplePoint
 }
 
 export interface Results {
@@ -113,18 +115,30 @@ export function App() {
       return
     }
 
-    let weather: Awaited<ReturnType<typeof fetchWeatherAll>>
+    let weather: { now: Awaited<ReturnType<typeof fetchWeatherAll>>['now']; plus2h: Awaited<ReturnType<typeof fetchWeatherAll>>['plus2h']; plus8h: Awaited<ReturnType<typeof fetchWeatherAll>>['plus8h'] }
+    let sources: { now: SamplePoint; plus2h: SamplePoint; plus8h: SamplePoint }
     try {
-      const midLat = (from.lat + to.lat) / 2
-      const midLng = (from.lng + to.lng) / 2
-      weather = await withRetry(() => fetchWeatherAll(midLat, midLng))
+      if (needsMultiPointSampling(route.distanceKm, route.coordinates)) {
+        const points = sampleCoordinates(route.coordinates)
+        const snapshots = await withRetry(() =>
+          Promise.all(points.map(([lat, lng]) => fetchWeatherAll(lat, lng))),
+        )
+        const aggregated = aggregateSnapshots(snapshots, route.surfaceCounts, route.distanceKm * 1000)
+        weather = { now: aggregated.now, plus2h: aggregated.plus2h, plus8h: aggregated.plus8h }
+        sources = { now: aggregated.nowSource, plus2h: aggregated.plus2hSource, plus8h: aggregated.plus8hSource }
+      } else {
+        const midLat = (from.lat + to.lat) / 2
+        const midLng = (from.lng + to.lng) / 2
+        weather = await withRetry(() => fetchWeatherAll(midLat, midLng))
+        sources = { now: 'midpoint', plus2h: 'midpoint', plus8h: 'midpoint' }
+      }
     } catch (err) {
       setError({ source: 'weather', message: err instanceof Error ? err.message : String(err) })
       setStatus('error')
       return
     }
 
-    function buildState(w: typeof weather.now): RouteState {
+    function buildState(w: typeof weather.now, source: SamplePoint): RouteState {
       return {
         slipperiness: calculateSlipperiness(w, route.surfaceCounts, route.distanceKm * 1000),
         distanceKm: route.distanceKm,
@@ -137,13 +151,14 @@ export function App() {
         precipType: w.precipType,
         rainNextHours: w.rainNextHours,
         hasIceAlert: w.hasIceAlert,
+        sampleSource: source,
       }
     }
 
     const newResults: Results = {
-      now: buildState(weather.now),
-      plus2h: buildState(weather.plus2h),
-      plus8h: buildState(weather.plus8h),
+      now: buildState(weather.now, sources.now),
+      plus2h: buildState(weather.plus2h, sources.plus2h),
+      plus8h: buildState(weather.plus8h, sources.plus8h),
     }
 
     const ts = setCached(from, to, waypoints, newResults)

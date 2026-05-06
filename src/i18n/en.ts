@@ -25,6 +25,8 @@ const en = {
   verdict: {
     roadConditions: 'road conditions',
     gear: 'gear',
+    conditions: 'Conditions',
+    conditionsAt: 'Conditions — {{point}}',
     normalTyres: 'Normal tyres',
     studdedTyres: 'Studded tyres',
     jacket: 'Waterproof jacket',
@@ -34,6 +36,12 @@ const en = {
     justNow: 'just now',
     minutesAgo: '{{n}} min ago',
     hoursAgo: '{{n}} h ago',
+  },
+  sample: {
+    midpoint: 'midpoint',
+    start: 'near start',
+    mid: 'midway',
+    end: 'near destination',
   },
   risk: {
     clear: 'Clear',

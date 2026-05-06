@@ -27,6 +27,8 @@ const no: Translations = {
   verdict: {
     roadConditions: 'veiforhold',
     gear: 'utstyr',
+    conditions: 'Forhold',
+    conditionsAt: 'Forhold — {{point}}',
     normalTyres: 'Vanlige dekk',
     studdedTyres: 'Piggdekk',
     jacket: 'Vanntett jakke',
@@ -36,6 +38,12 @@ const no: Translations = {
     justNow: 'akkurat nå',
     minutesAgo: '{{n}} min siden',
     hoursAgo: '{{n}} t siden',
+  },
+  sample: {
+    midpoint: 'midtpunkt',
+    start: 'nær start',
+    mid: 'midtveis',
+    end: 'nær mål',
   },
   risk: {
     clear: 'Greit',
