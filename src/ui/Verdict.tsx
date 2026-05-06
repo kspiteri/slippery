@@ -351,7 +351,7 @@ export function Verdict({ now, plus2h, plus8h, lastCheckedAt, coordinates, multi
   }
 
   return (
-    <div className="verdict-card">
+    <div className="card verdict-card">
       <div className="verdict-route-bar">
         <span className="route-stat"><Bike size={13} />{now.distanceKm.toFixed(1)} km</span>
         <span className="route-stat"><Clock size={13} />{Math.round(now.durationMin)} min</span>

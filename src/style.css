@@ -16,6 +16,8 @@
   --text-muted: #6b7a8f;
   --accent: #58a6ff;
   --accent-dim: rgba(88, 166, 255, 0.12);
+  --error: #f85149;
+  --alert: #f0883e;
   --font: 'Inter', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', 'Courier New', monospace;
   --radius: 10px;
@@ -34,6 +36,8 @@
   --text-muted: #64748b;
   --accent: #2563eb;
   --accent-dim: rgba(37, 99, 235, 0.1);
+  --error: #d93025;
+  --alert: #c2600a;
   --shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
   color-scheme: light;
 }
@@ -53,7 +57,6 @@ html, body {
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  opacity: 1;
 }
 
 #root {
@@ -66,10 +69,9 @@ html, body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 40px 16px 80px;
+  padding: 16px;
 }
 
-/* Header */
 .app-header {
   width: 100%;
   max-width: 480px;
@@ -147,17 +149,19 @@ main {
   gap: 16px;
 }
 
-/* Form */
-#route-form {
+.card {
   background: var(--bg-elevated);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 20px;
   backdrop-filter: blur(16px);
+  box-shadow: var(--shadow);
+}
+
+#route-form {
+  padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  box-shadow: var(--shadow);
   position: relative;
   z-index: 2;
 }
@@ -165,7 +169,6 @@ main {
 .fields {
   display: flex;
   flex-direction: column;
-  gap: 0;
 }
 
 .field {
@@ -242,7 +245,7 @@ main {
   transition: color 0.15s;
 }
 
-.waypoint-remove-btn:hover { color: #f85149; }
+.waypoint-remove-btn:hover { color: var(--error); }
 
 .field-label {
   font-size: 0.7rem;
@@ -322,7 +325,18 @@ main {
 .locate-spinner {
   width: 11px;
   height: 11px;
-  border: 1.5px solid var(--border);
+  border-width: 1.5px;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border-width: 2px;
+}
+
+.spinner, .locate-spinner {
+  border-style: solid;
+  border-color: var(--border);
   border-top-color: var(--accent);
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
@@ -335,7 +349,7 @@ main {
   left: 0;
   right: 0;
   z-index: 100;
-  background: #0f1923;
+  background: var(--bg-suggestions, #0f1923);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   list-style: none;
@@ -343,8 +357,8 @@ main {
   box-shadow: var(--shadow);
 }
 
-[data-theme='light'] .suggestions {
-  background: #fff;
+[data-theme='light'] {
+  --bg-suggestions: #fff;
 }
 
 .suggestions li {
@@ -404,7 +418,6 @@ main {
 #go-btn:not(:disabled):hover { opacity: 0.88; }
 #go-btn:not(:disabled):active { transform: scale(0.98); }
 
-/* Loading */
 .loading-state {
   display: flex;
   align-items: center;
@@ -413,33 +426,14 @@ main {
   padding: 20px;
   color: var(--text-muted);
   font-size: 0.85rem;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  backdrop-filter: blur(16px);
-}
-
-.spinner {
-  width: 16px;
-  height: 16px;
-  border: 2px solid var(--border);
-  border-top-color: var(--accent);
-  border-radius: 50%;
-  animation: spin 0.7s linear infinite;
 }
 
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
 
-/* Verdict */
 .verdict-card {
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  backdrop-filter: blur(16px);
   overflow: hidden;
-  box-shadow: var(--shadow);
   animation: fadeUp 0.3s ease;
 }
 
@@ -470,7 +464,6 @@ main {
   opacity: 0.7;
 }
 
-/* Verdict tabs */
 .verdict-tabs {
   display: flex;
   border-bottom: 1px solid var(--border);
@@ -498,7 +491,6 @@ main {
   border-bottom-color: var(--accent);
 }
 
-/* Summary line — reason text, prominent */
 .verdict-summary {
   display: flex;
   flex-direction: column;
@@ -575,7 +567,7 @@ main {
 
 .tyre-toggle {
   display: inline-flex;
-  background: var(--card-elevated, color-mix(in srgb, var(--text) 6%, transparent));
+  background: color-mix(in srgb, var(--text) 6%, transparent);
   border: 1px solid var(--border);
   border-radius: 999px;
   padding: 2px;
@@ -607,11 +599,6 @@ main {
 .tyre-prompt {
   margin-top: 14px;
   padding: 16px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--bg-elevated);
-  backdrop-filter: blur(16px);
-  box-shadow: var(--shadow);
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -654,13 +641,6 @@ main {
   background: color-mix(in srgb, var(--accent) 8%, var(--bg));
 }
 
-.tyres-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-bottom: 6px;
-}
-
 .tyre-row {
   display: flex;
   align-items: center;
@@ -672,16 +652,6 @@ main {
   background: var(--bg-input);
 }
 
-.tyre-label-group {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--text);
-  font-size: 0.85rem;
-  font-weight: 500;
-}
-
-/* Status badge — dot + label, replaces old chip */
 .status-badge {
   display: flex;
   align-items: center;
@@ -700,7 +670,6 @@ main {
   flex-shrink: 0;
 }
 
-/* Jacket row */
 .jacket-row {
   display: flex;
   align-items: center;
@@ -747,24 +716,19 @@ main {
   color: var(--text-muted);
   background: var(--bg-input);
   border: 1px solid var(--border);
-  border-radius: 99px;
+  border-radius: 999px;
   padding: 3px 10px;
   font-family: var(--font-mono);
 }
 
 .alert-pill {
-  color: #f0883e;
-  border-color: rgba(240, 136, 62, 0.3);
-  background: rgba(240, 136, 62, 0.08);
+  color: var(--alert);
+  border-color: color-mix(in srgb, var(--alert) 30%, transparent);
+  background: color-mix(in srgb, var(--alert) 8%, transparent);
 }
 
-/* Error */
 .error-box {
-  background: var(--bg-elevated);
-  border: 1px solid rgba(248, 81, 73, 0.35);
-  border-radius: var(--radius);
-  backdrop-filter: blur(16px);
-  box-shadow: var(--shadow);
+  border-color: color-mix(in srgb, var(--error) 35%, transparent);
   overflow: hidden;
   animation: fadeUp 0.3s ease;
   display: flex;
@@ -775,7 +739,7 @@ main {
 }
 
 .error-box > svg {
-  color: #f85149;
+  color: var(--error);
   flex-shrink: 0;
   margin-top: 2px;
 }
@@ -789,7 +753,7 @@ main {
 }
 
 .error-content strong {
-  color: #f85149;
+  color: var(--error);
   font-size: 0.9rem;
   font-weight: 600;
 }
@@ -828,7 +792,6 @@ main {
   transform: scale(0.98);
 }
 
-/* Surface composition bar */
 .elevation-profile {
   padding: 12px 16px;
   border-bottom: 1px solid var(--border);
@@ -885,7 +848,7 @@ main {
   display: flex;
   width: 100%;
   height: 8px;
-  border-radius: 99px;
+  border-radius: 999px;
   overflow: hidden;
   background: var(--bg-input);
 }
@@ -932,7 +895,6 @@ main {
   color: var(--text-muted);
 }
 
-/* How-it's-scored dropdown */
 .how-scored {
   border-top: 1px solid var(--border);
   margin-top: 4px;
@@ -1007,10 +969,6 @@ main {
   color: var(--accent);
 }
 
-.how-scored .totals-row td:nth-child(3) {
-  color: var(--text);
-}
-
 .how-scored table {
   width: 100%;
   margin-top: 10px;
@@ -1030,9 +988,7 @@ main {
 }
 
 .how-scored th:nth-child(2),
-.how-scored th:nth-child(3),
-.how-scored td:nth-child(2),
-.how-scored td:nth-child(3) {
+.how-scored td:nth-child(2) {
   text-align: right;
   width: 18%;
 }
@@ -1048,11 +1004,6 @@ main {
   color: var(--accent);
 }
 
-.how-scored td:nth-child(3) {
-  font-family: var(--font-mono);
-  color: var(--text-muted);
-}
-
 .how-scored .footnote {
   margin-top: 8px;
   font-size: 0.74rem;
@@ -1062,12 +1013,9 @@ main {
 
 /* ── Responsive ──────────────────────────────────────── */
 
-/* Mobile-first base is already single-column.
-   Widen the content area on larger screens. */
-
 @media (min-width: 600px) {
   #app {
-    padding: 56px 24px 80px;
+    padding: 24px;
   }
 
   .app-header,
@@ -1082,7 +1030,7 @@ main {
 
 @media (min-width: 900px) {
   #app {
-    padding: 72px 32px 80px;
+    padding: 32px;
   }
 
   .app-header,
@@ -1098,7 +1046,7 @@ main {
 /* Small phones — tighten padding */
 @media (max-width: 380px) {
   #app {
-    padding: 24px 12px 60px;
+    padding: 12px;
   }
 
   .header-title h1 {

@@ -194,13 +194,13 @@ export function App() {
       <main>
         <AddressForm onCheck={handleCheck} loading={status === 'loading'} cooldownUntil={cooldownUntil} />
         {status === 'loading' && (
-          <div className="loading-state">
+          <div className="card loading-state">
             <div className="spinner" />
             {t('app.loading')}
           </div>
         )}
         {status === 'error' && error && (
-          <div className="error-box">
+          <div className="card error-box">
             <AlertTriangle size={15} />
             <div className="error-content">
               <strong>{t(`error.${error.source}Failed`)}</strong>
@@ -225,7 +225,7 @@ export function App() {
           />
         )}
         {showTyrePrompt && (
-          <div className="tyre-prompt">
+          <div className="card tyre-prompt">
             <div className="tyre-prompt-heading">{t('tyrePrompt.heading')}</div>
             <p className="tyre-prompt-body">{t('tyrePrompt.body')}</p>
             <div className="tyre-prompt-actions">

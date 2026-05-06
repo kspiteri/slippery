@@ -388,7 +388,7 @@ export function AddressForm({ onCheck, loading, cooldownUntil }: Props) {
   }
 
   return (
-    <form id="route-form" onSubmit={handleSubmit}>
+    <form id="route-form" className="card" onSubmit={handleSubmit}>
       <div className="fields">
         <AddressField
           label={t('form.from')}
