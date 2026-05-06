@@ -134,6 +134,7 @@ const en = {
     weatherFailed: 'weather lookup failed',
     unknownFailed: 'something went wrong',
     tryAgain: 'try again',
+    outsideNorway: 'only Norwegian addresses are supported',
   },
 }
 

@@ -136,6 +136,7 @@ const no: Translations = {
     weatherFailed: 'kunne ikke hente vær',
     unknownFailed: 'noe gikk galt',
     tryAgain: 'prøv igjen',
+    outsideNorway: 'bare norske adresser støttes',
   },
 }
 

@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { MapPin, X, ArrowRight, ArrowUpDown, LocateFixed, Plus } from 'lucide-react'
 import { loadAddresses, saveAddress, clearAddress, saveWaypoints, type SavedAddress } from '../state'
-import { geocodeAutocomplete, geocodeReverse, type GeocodeSuggestion } from '../api/ors'
+import { geocodeAutocomplete, geocodeReverse, isWithinNorway, type GeocodeSuggestion } from '../api/ors'
 
 export interface Waypoint {
   id: number
@@ -22,6 +22,7 @@ function useAddressField(field: 'from' | 'to', onSaved: () => void, overrideValu
   const [value, setValue] = useState(saved?.label ?? '')
   const [suggestions, setSuggestions] = useState<GeocodeSuggestion[]>([])
   const [open, setOpen] = useState(false)
+  const [outOfBounds, setOutOfBounds] = useState(false)
   const debounce = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
@@ -34,6 +35,7 @@ function useAddressField(field: 'from' | 'to', onSaved: () => void, overrideValu
 
   const handleInput = useCallback((text: string) => {
     setValue(text)
+    setOutOfBounds(false)
     if (debounce.current) clearTimeout(debounce.current)
     if (text.length < 3) { setSuggestions([]); setOpen(false); return }
     debounce.current = setTimeout(async () => {
@@ -48,7 +50,15 @@ function useAddressField(field: 'from' | 'to', onSaved: () => void, overrideValu
   }, [])
 
   const handleSelect = useCallback((s: GeocodeSuggestion) => {
+    if (!isWithinNorway(s.lat, s.lng)) {
+      setValue(s.label)
+      setOutOfBounds(true)
+      setSuggestions([])
+      setOpen(false)
+      return
+    }
     setValue(s.label)
+    setOutOfBounds(false)
     saveAddress(field, { label: s.label, lat: s.lat, lng: s.lng })
     setSuggestions([])
     setOpen(false)
@@ -57,19 +67,21 @@ function useAddressField(field: 'from' | 'to', onSaved: () => void, overrideValu
 
   const handleClear = useCallback(() => {
     setValue('')
+    setOutOfBounds(false)
     clearAddress(field)
     setSuggestions([])
     setOpen(false)
     onSaved()
   }, [field, onSaved])
 
-  return { value, setValue, suggestions, open, handleInput, handleSelect, handleClear, setOpen }
+  return { value, setValue, suggestions, open, outOfBounds, handleInput, handleSelect, handleClear, setOpen }
 }
 
 function useWaypointField(initialLabel = '') {
   const [value, setValue] = useState(initialLabel)
   const [suggestions, setSuggestions] = useState<GeocodeSuggestion[]>([])
   const [open, setOpen] = useState(false)
+  const [outOfBounds, setOutOfBounds] = useState(false)
   const debounce = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
@@ -78,6 +90,7 @@ function useWaypointField(initialLabel = '') {
 
   const handleInput = useCallback((text: string) => {
     setValue(text)
+    setOutOfBounds(false)
     if (debounce.current) clearTimeout(debounce.current)
     if (text.length < 3) { setSuggestions([]); setOpen(false); return }
     debounce.current = setTimeout(async () => {
@@ -93,12 +106,19 @@ function useWaypointField(initialLabel = '') {
 
   const handleSelect = useCallback((s: GeocodeSuggestion) => {
     setValue(s.label)
+    if (!isWithinNorway(s.lat, s.lng)) {
+      setOutOfBounds(true)
+      setSuggestions([])
+      setOpen(false)
+      return null
+    }
+    setOutOfBounds(false)
     setSuggestions([])
     setOpen(false)
     return s
   }, [])
 
-  return { value, setValue, suggestions, open, handleInput, handleSelect, setOpen }
+  return { value, setValue, suggestions, open, outOfBounds, handleInput, handleSelect, setOpen }
 }
 
 function AddressField({
@@ -117,7 +137,7 @@ function AddressField({
   showLocate?: boolean
 }) {
   const { t } = useTranslation()
-  const { value, setValue, suggestions, open, handleInput, handleSelect, handleClear, setOpen } =
+  const { value, setValue, suggestions, open, outOfBounds, handleInput, handleSelect, handleClear, setOpen } =
     useAddressField(field, onSaved, overrideValue)
   const wrapRef = useRef<HTMLDivElement>(null)
   const [locating, setLocating] = useState(false)
@@ -136,6 +156,7 @@ function AddressField({
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         try {
+          if (!isWithinNorway(pos.coords.latitude, pos.coords.longitude)) return
           const result = await geocodeReverse(pos.coords.latitude, pos.coords.longitude)
           if (result) {
             setValue(result.label)
@@ -154,7 +175,7 @@ function AddressField({
   return (
     <div className="field" ref={wrapRef}>
       <span className="field-label">{label}</span>
-      <div className="input-wrap">
+      <div className={`input-wrap${outOfBounds ? ' input-wrap--error' : ''}`}>
         <span className="input-icon"><MapPin size={14} /></span>
         <input
           type="text"
@@ -181,6 +202,7 @@ function AddressField({
           </button>
         )}
       </div>
+      {outOfBounds && <span className="field-error">{t('error.outsideNorway')}</span>}
       {open && (
         <ul className="suggestions">
           {suggestions.map((s) => (
@@ -206,7 +228,7 @@ function WaypointField({
   initialValue?: SavedAddress
 }) {
   const { t } = useTranslation()
-  const { value, setValue, suggestions, open, handleInput, handleSelect, setOpen } =
+  const { value, setValue, suggestions, open, outOfBounds, handleInput, handleSelect, setOpen } =
     useWaypointField(initialValue?.label)
   const wrapRef = useRef<HTMLDivElement>(null)
 
@@ -226,7 +248,7 @@ function WaypointField({
           <X size={11} />
         </button>
       </div>
-      <div className="input-wrap">
+      <div className={`input-wrap${outOfBounds ? ' input-wrap--error' : ''}`}>
         <span className="input-icon"><MapPin size={14} /></span>
         <input
           type="text"
@@ -242,6 +264,7 @@ function WaypointField({
           </button>
         )}
       </div>
+      {outOfBounds && <span className="field-error">{t('error.outsideNorway')}</span>}
       {open && (
         <ul className="suggestions">
           {suggestions.map((s) => (
@@ -249,8 +272,8 @@ function WaypointField({
               key={`${s.lat},${s.lng}`}
               onMouseDown={(e) => {
                 e.preventDefault()
-                handleSelect(s)
-                onResolved(id, s)
+                const resolved = handleSelect(s)
+                if (resolved) onResolved(id, resolved)
               }}
             >
               {s.label}

@@ -2,6 +2,14 @@ const ORS_KEY = import.meta.env.VITE_ORS_KEY as string
 // Geocoding endpoints only accept the key as a query param — Authorization header triggers a CORS preflight that ORS rejects.
 // fetchRoute uses Authorization because it's a POST and ORS allows it there.
 
+// Norway bounding box (generous — includes Svalbard)
+const NO_BOUNDS = { minLat: 57.5, maxLat: 81.0, minLng: 4.0, maxLng: 32.0 }
+
+export function isWithinNorway(lat: number, lng: number): boolean {
+  return lat >= NO_BOUNDS.minLat && lat <= NO_BOUNDS.maxLat
+    && lng >= NO_BOUNDS.minLng && lng <= NO_BOUNDS.maxLng
+}
+
 export interface GeocodeSuggestion {
   label: string
   lat: number

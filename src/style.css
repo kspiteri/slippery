@@ -271,6 +271,21 @@ main {
   box-shadow: 0 0 0 3px var(--accent-dim);
 }
 
+.input-wrap--error {
+  border-color: color-mix(in srgb, var(--error) 60%, transparent);
+}
+
+.input-wrap--error:focus-within {
+  border-color: var(--error);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--error) 15%, transparent);
+}
+
+.field-error {
+  font-size: 0.72rem;
+  color: var(--error);
+  padding-left: 2px;
+}
+
 .input-icon {
   color: var(--text-muted);
   padding-left: 10px;
