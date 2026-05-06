@@ -12,6 +12,29 @@ It scores road slipperiness separately for **normal** and **studded tyres**, giv
 
 Results are shown across three time horizons (now / +2h / +8h) and cached in `sessionStorage` for 15 minutes so re-checking the same route doesn't hit the APIs again. Failed requests retry with exponential backoff, and surface a typed error UI with a retry button if they still fail. A 30-second cooldown on the check button discourages hammering the public ORS key, and a "last checked X min ago" indicator shows the freshness of the current result.
 
+## How it's scored
+
+Each route gets a score from 0+ based on the rules below. Higher = more slippery. The right-hand column shows how much studded tyres knock off when the rule fires — based on cycling research showing studs help dramatically on ice, helpfully on snow, and barely at all on wet pavement or rough surfaces.
+
+| Condition | Points | Studs |
+|---|---|---|
+| Overnight low < 0 °C | +30 | -20 |
+| Overnight low < -3 °C | +20 | -15 |
+| Current temp < 2 °C | +15 | -5 |
+| Thaw (now 0–3 °C, was sub-zero) | +10 | -8 |
+| Cold precipitation (overnight low < 2 °C) | +20 base | 0 |
+| ↳ snow (extra) | +15 | -10 |
+| ↳ sleet (extra) | +8 | -4 |
+| Cobblestone surface | up to +10 (scaled) | 0 |
+| Rough surface (gravel/unpaved/dirt) | up to +5 (scaled) | 0 |
+| Ice surface | up to +30 (scaled) | full match |
+| Snow surface | up to +15 (scaled) | × 0.7 |
+| Active ice/weather alert | +25 | -15 |
+
+Surface penalties scale with the share of the route on that surface — a route 50% cobblestone gets +5, not +10. Studded reductions stack across rules; the studded score is `max(0, total − Σreductions)`.
+
+**Risk levels:** 0–25 clear · 26–55 caution · 56–79 high · 80+ don't ride
+
 ## Stack
 
 - Vite 6 + React 19 + TypeScript
