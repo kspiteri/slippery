@@ -244,7 +244,7 @@ function VerdictPanel({
     .map((f) => t(f.key, f.params))
     .join(' · ')
 
-  const sampleSource = data.sampleSource ?? 'midpoint'
+  const sampleSource = data.sampleSource
   const headingText = sampleSource === 'midpoint'
     ? t('verdict.conditions')
     : t('verdict.conditionsAt', { point: t(`sample.${sampleSource}`) })

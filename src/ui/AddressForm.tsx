@@ -66,7 +66,7 @@ function useAddressField(field: 'from' | 'to', onSaved: () => void, overrideValu
   return { value, setValue, suggestions, open, handleInput, handleSelect, handleClear, setOpen }
 }
 
-function useWaypointField(onSaved: () => void, initialLabel = '') {
+function useWaypointField(initialLabel = '') {
   const [value, setValue] = useState(initialLabel)
   const [suggestions, setSuggestions] = useState<GeocodeSuggestion[]>([])
   const [open, setOpen] = useState(false)
@@ -95,9 +95,8 @@ function useWaypointField(onSaved: () => void, initialLabel = '') {
     setValue(s.label)
     setSuggestions([])
     setOpen(false)
-    onSaved()
     return s
-  }, [onSaved])
+  }, [])
 
   return { value, setValue, suggestions, open, handleInput, handleSelect, setOpen }
 }
@@ -117,6 +116,7 @@ function AddressField({
   overrideValue?: string
   showLocate?: boolean
 }) {
+  const { t } = useTranslation()
   const { value, setValue, suggestions, open, handleInput, handleSelect, handleClear, setOpen } =
     useAddressField(field, onSaved, overrideValue)
   const wrapRef = useRef<HTMLDivElement>(null)
@@ -168,7 +168,7 @@ function AddressField({
           <button
             type="button"
             className={`locate-btn${locating ? ' locating' : ''}`}
-            aria-label="Use current location"
+            aria-label={t('form.useLocation')}
             onClick={handleLocate}
             disabled={locating}
           >
@@ -176,7 +176,7 @@ function AddressField({
           </button>
         )}
         {value && (
-          <button type="button" className="clear-btn" aria-label="Clear" onClick={handleClear}>
+          <button type="button" className="clear-btn" aria-label={t('form.clear')} onClick={handleClear}>
             <X size={13} />
           </button>
         )}
@@ -206,9 +206,8 @@ function WaypointField({
   initialValue?: SavedAddress
 }) {
   const { t } = useTranslation()
-  const handleSaved = useCallback(() => {}, [])
   const { value, setValue, suggestions, open, handleInput, handleSelect, setOpen } =
-    useWaypointField(handleSaved, initialValue?.label)
+    useWaypointField(initialValue?.label)
   const wrapRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -278,8 +277,10 @@ function CheckRouteButton({
 }) {
   const { t } = useTranslation()
   const [now, setNow] = useState(Date.now())
-  const onCooldown = cooldownUntil != null && now < cooldownUntil
-  const remaining = onCooldown ? Math.ceil((cooldownUntil! - now) / 1000) : 0
+  const remaining = cooldownUntil != null && now < cooldownUntil
+    ? Math.ceil((cooldownUntil - now) / 1000)
+    : 0
+  const onCooldown = remaining > 0
 
   useEffect(() => {
     if (!onCooldown) return
@@ -311,18 +312,14 @@ export function AddressForm({ onCheck, loading, cooldownUntil }: Props) {
     const saved = loadAddresses().waypoints
     return saved.map((w) => ({ id: nextId++, initial: w }))
   })
-  const waypointsRef = useRef<Map<number, Waypoint>>(new Map())
-
-  // Pre-populate ref from saved waypoints on mount
-  useEffect(() => {
-    const saved = loadAddresses().waypoints
-    waypoints.forEach((entry, i) => {
-      const w = saved[i]
-      if (w) waypointsRef.current.set(entry.id, { id: entry.id, ...w })
+  const waypointsRef = useRef<Map<number, Waypoint>>(null as unknown as Map<number, Waypoint>)
+  if (waypointsRef.current === null) {
+    const map = new Map<number, Waypoint>()
+    waypoints.forEach((entry) => {
+      if (entry.initial) map.set(entry.id, { id: entry.id, ...entry.initial })
     })
-  // Only run once on mount
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+    waypointsRef.current = map
+  }
 
   const refreshCanCheck = useCallback(() => {
     const { from, to } = loadAddresses()

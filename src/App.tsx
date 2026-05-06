@@ -112,7 +112,7 @@ export function App() {
       return
     }
 
-    let weather: { now: Awaited<ReturnType<typeof fetchWeatherAll>>['now']; plus2h: Awaited<ReturnType<typeof fetchWeatherAll>>['plus2h']; plus8h: Awaited<ReturnType<typeof fetchWeatherAll>>['plus8h'] }
+    let weather: Awaited<ReturnType<typeof fetchWeatherAll>>
     let sources: { now: SamplePoint; plus2h: SamplePoint; plus8h: SamplePoint }
     try {
       if (needsMultiPointSampling(route.distanceKm, route.coordinates)) {
@@ -174,6 +174,9 @@ export function App() {
     handleCheck(lastWaypoints)
   }, [handleCheck, lastWaypoints])
 
+  const showVerdict = results != null && tyrePref != null
+  const showTyrePrompt = results != null && tyrePref == null
+
   return (
     <div id="app">
       <header className="app-header">
@@ -209,7 +212,7 @@ export function App() {
             </div>
           </div>
         )}
-        {results && tyrePref != null && (
+        {showVerdict && (
           <Verdict
             now={results.now}
             plus2h={results.plus2h}
@@ -221,7 +224,7 @@ export function App() {
             onChangeTyrePref={chooseTyrePref}
           />
         )}
-        {results && tyrePref == null && (
+        {showTyrePrompt && (
           <div className="tyre-prompt">
             <div className="tyre-prompt-heading">{t('tyrePrompt.heading')}</div>
             <p className="tyre-prompt-body">{t('tyrePrompt.body')}</p>
