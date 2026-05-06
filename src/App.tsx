@@ -19,6 +19,7 @@ export interface RouteState {
   distanceKm: number
   durationMin: number
   dominantSurface: string
+  surfaceCounts: Record<string, number>
   currentTemp: number
   overnightLow: number
   recentPrecipMm: number
@@ -125,10 +126,11 @@ export function App() {
 
     function buildState(w: typeof weather.now): RouteState {
       return {
-        slipperiness: calculateSlipperiness(w, route.dominantSurface),
+        slipperiness: calculateSlipperiness(w, route.surfaceCounts, route.distanceKm * 1000),
         distanceKm: route.distanceKm,
         durationMin: route.durationMin,
         dominantSurface: route.dominantSurface,
+        surfaceCounts: route.surfaceCounts,
         currentTemp: w.currentTemp,
         overnightLow: w.overnightLow,
         recentPrecipMm: w.recentPrecipMm,
