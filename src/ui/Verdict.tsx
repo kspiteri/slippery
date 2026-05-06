@@ -6,6 +6,7 @@ import {
 } from 'lucide-react'
 import type { SlippinessResult, RiskLevel } from '../logic/slipperiness'
 import type { RouteState } from '../App'
+import type { TyrePref } from '../state'
 import { ElevationProfile } from './ElevationProfile'
 
 const RISK_COLOURS: Record<RiskLevel, string> = {
@@ -49,6 +50,8 @@ interface Props {
   lastCheckedAt: number | null
   coordinates: [number, number, number][]
   multiPoint: boolean
+  tyrePref: TyrePref
+  onChangeTyrePref: (pref: TyrePref) => void
 }
 
 type Tab = 'now' | 'plus2h' | 'plus8h'
@@ -155,10 +158,11 @@ const SCORING_RULES: { key: string; points: string; studs: string }[] = [
   { key: 'iceAlert',     points: '+25', studs: '-15' },
 ]
 
-function HowScored({ result }: { result: SlippinessResult }) {
+function HowScored({ result, tyrePref }: { result: SlippinessResult; tyrePref: TyrePref }) {
   const { t } = useTranslation()
   const { breakdown, score, studdedScore } = result
-  const totalReduction = score - studdedScore
+  const showStuds = tyrePref === 'studded'
+  const totalForTyre = showStuds ? studdedScore : score
 
   return (
     <details className="how-scored">
@@ -171,17 +175,18 @@ function HowScored({ result }: { result: SlippinessResult }) {
         ) : (
           <table>
             <tbody>
-              {breakdown.map((b, i) => (
-                <tr key={`${b.ruleKey}-${i}`}>
-                  <td>{t(`howScored.rules.${b.ruleKey}`)}</td>
-                  <td>+{b.points}</td>
-                  <td>{b.studsReduction > 0 ? `-${b.studsReduction}` : '0'}</td>
-                </tr>
-              ))}
+              {breakdown.map((b, i) => {
+                const effective = showStuds ? Math.max(0, b.points - b.studsReduction) : b.points
+                return (
+                  <tr key={`${b.ruleKey}-${i}`}>
+                    <td>{t(`howScored.rules.${b.ruleKey}`)}</td>
+                    <td>+{effective}</td>
+                  </tr>
+                )
+              })}
               <tr className="totals-row">
                 <td>{t('howScored.total')}</td>
-                <td>{score}</td>
-                <td>{studdedScore} ({totalReduction > 0 ? `-${totalReduction}` : '0'})</td>
+                <td>{totalForTyre}</td>
               </tr>
             </tbody>
           </table>
@@ -195,28 +200,35 @@ function HowScored({ result }: { result: SlippinessResult }) {
           <thead>
             <tr>
               <th>{t('howScored.ruleHeader')}</th>
-              <th>{t('howScored.pointsHeader')}</th>
-              <th>{t('howScored.studdedHeader')}</th>
+              <th>{showStuds ? t('howScored.studdedPointsHeader') : t('howScored.pointsHeader')}</th>
             </tr>
           </thead>
           <tbody>
             {SCORING_RULES.map((r) => (
               <tr key={r.key}>
                 <td>{t(`howScored.rules.${r.key}`)}</td>
-                <td>{r.points}</td>
-                <td>{r.studs}</td>
+                <td>{showStuds ? r.studs : r.points}</td>
               </tr>
             ))}
           </tbody>
         </table>
         <p className="footnote">{t('howScored.thresholds')}</p>
-        <p className="footnote">{t('howScored.studded')}</p>
       </div>
     </details>
   )
 }
 
-function VerdictPanel({ data, tab }: { data: RouteState; tab: Tab }) {
+function VerdictPanel({
+  data,
+  tab,
+  tyrePref,
+  onChangeTyrePref,
+}: {
+  data: RouteState
+  tab: Tab
+  tyrePref: TyrePref
+  onChangeTyrePref: (pref: TyrePref) => void
+}) {
   const { t } = useTranslation()
   const { slipperiness, recentPrecipMm, precipType, rainNextHours,
           overnightLow, hasIceAlert } = data
@@ -248,16 +260,27 @@ function VerdictPanel({ data, tab }: { data: RouteState; tab: Tab }) {
       </div>
 
       <div className="verdict-body">
-        <div className="verdict-section-label">{t('verdict.roadConditions')}</div>
-        <div className="tyres-grid">
-          <div className="tyre-row">
-            <span className="tyre-label-group">{t('verdict.normalTyres')}</span>
-            <StatusBadge risk={slipperiness.normalRisk} />
+        <div className="verdict-section-row">
+          <span className="verdict-section-label">{t('verdict.roadConditions')}</span>
+          <div className="tyre-toggle" role="group" aria-label={t('verdict.tyreToggleAria')}>
+            <button
+              type="button"
+              className={`tyre-toggle-btn${tyrePref === 'normal' ? ' active' : ''}`}
+              onClick={() => onChangeTyrePref('normal')}
+            >
+              {t('verdict.normalTyres')}
+            </button>
+            <button
+              type="button"
+              className={`tyre-toggle-btn${tyrePref === 'studded' ? ' active' : ''}`}
+              onClick={() => onChangeTyrePref('studded')}
+            >
+              {t('verdict.studdedTyres')}
+            </button>
           </div>
-          <div className="tyre-row">
-            <span className="tyre-label-group">{t('verdict.studdedTyres')}</span>
-            <StatusBadge risk={slipperiness.studdedRisk} />
-          </div>
+        </div>
+        <div className="tyre-row">
+          <StatusBadge risk={tyrePref === 'studded' ? slipperiness.studdedRisk : slipperiness.normalRisk} />
         </div>
 
         <div className="verdict-section-label">{t('verdict.gear')}</div>
@@ -301,13 +324,13 @@ function VerdictPanel({ data, tab }: { data: RouteState; tab: Tab }) {
           )}
         </div>
 
-        <HowScored result={slipperiness} />
+        <HowScored result={slipperiness} tyrePref={tyrePref} />
       </div>
     </>
   )
 }
 
-export function Verdict({ now, plus2h, plus8h, lastCheckedAt, coordinates, multiPoint }: Props) {
+export function Verdict({ now, plus2h, plus8h, lastCheckedAt, coordinates, multiPoint, tyrePref, onChangeTyrePref }: Props) {
   const { t } = useTranslation()
   const [tab, setTab] = useState<Tab>('now')
   const [tick, setTick] = useState(Date.now())
@@ -352,7 +375,7 @@ export function Verdict({ now, plus2h, plus8h, lastCheckedAt, coordinates, multi
         <button className={`verdict-tab${tab === 'plus8h' ? ' active' : ''}`} onClick={() => setTab('plus8h')}>{t('verdict.tabPlus8h')}</button>
       </div>
 
-      <VerdictPanel data={active} tab={tab} />
+      <VerdictPanel data={active} tab={tab} tyrePref={tyrePref} onChangeTyrePref={onChangeTyrePref} />
     </div>
   )
 }

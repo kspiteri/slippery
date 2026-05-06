@@ -7,7 +7,7 @@ const no: Translations = {
   },
   header: {
     toggleTheme: 'Bytt tema',
-    toggleLang: 'Switch to English',
+    toggleLang: 'English',
   },
   form: {
     from: 'fra',
@@ -32,6 +32,7 @@ const no: Translations = {
     conditionsAt: 'Forhold — {{point}}',
     normalTyres: 'Vanlige dekk',
     studdedTyres: 'Piggdekk',
+    tyreToggleAria: 'Dekktype',
     jacket: 'Vanntett jakke',
     tabNow: 'Nå',
     tabPlus2h: '+2t',
@@ -39,6 +40,12 @@ const no: Translations = {
     justNow: 'akkurat nå',
     minutesAgo: '{{n}} min siden',
     hoursAgo: '{{n}} t siden',
+  },
+  tyrePrompt: {
+    heading: 'Hvilke dekk sykler du på?',
+    body: 'Piggdekk reduserer glatthet betydelig på is og snø. Velg det du sykler med — du kan endre dette senere.',
+    normal: 'Vanlige',
+    studded: 'Piggdekk',
   },
   sample: {
     midpoint: 'midtpunkt',
@@ -106,6 +113,7 @@ const no: Translations = {
     ruleHeader: 'Forhold',
     pointsHeader: 'Poeng',
     studdedHeader: 'Pigg',
+    studdedPointsHeader: 'Pigg-effekt',
     rules: {
       overnightLow: 'Natttemperatur under 0 °C',
       hardFreeze: 'Natttemperatur under -3 °C',

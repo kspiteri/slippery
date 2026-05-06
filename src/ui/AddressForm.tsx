@@ -428,9 +428,8 @@ export function AddressForm({ onCheck, loading, cooldownUntil }: Props) {
         />
       </div>
       <div className="form-actions">
-        <button type="button" className="swap-btn" onClick={handleSwap} aria-label={t('form.swap')}>
+        <button type="button" className="swap-btn" onClick={handleSwap} aria-label={t('form.swap')} title={t('form.swap')}>
           <ArrowUpDown size={14} />
-          {t('form.swap')}
         </button>
         <CheckRouteButton loading={loading} canCheck={canCheck} cooldownUntil={cooldownUntil} />
       </div>

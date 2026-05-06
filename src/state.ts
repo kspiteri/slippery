@@ -44,3 +44,15 @@ export function saveWaypoints(waypoints: SavedAddress[]): void {
   current.waypoints = waypoints
   localStorage.setItem(KEY, JSON.stringify(current))
 }
+
+export type TyrePref = 'normal' | 'studded'
+const TYRE_KEY = 'slippery_tyres'
+
+export function loadTyrePref(): TyrePref | null {
+  const raw = localStorage.getItem(TYRE_KEY)
+  return raw === 'normal' || raw === 'studded' ? raw : null
+}
+
+export function saveTyrePref(pref: TyrePref): void {
+  localStorage.setItem(TYRE_KEY, pref)
+}

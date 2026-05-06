@@ -5,7 +5,7 @@ const en = {
   },
   header: {
     toggleTheme: 'Toggle theme',
-    toggleLang: 'Bytt til norsk',
+    toggleLang: 'Norsk',
   },
   form: {
     from: 'from',
@@ -30,6 +30,7 @@ const en = {
     conditionsAt: 'Conditions — {{point}}',
     normalTyres: 'Normal tyres',
     studdedTyres: 'Studded tyres',
+    tyreToggleAria: 'Tyre type',
     jacket: 'Waterproof jacket',
     tabNow: 'Now',
     tabPlus2h: '+2h',
@@ -37,6 +38,12 @@ const en = {
     justNow: 'just now',
     minutesAgo: '{{n}} min ago',
     hoursAgo: '{{n}} h ago',
+  },
+  tyrePrompt: {
+    heading: 'Which tyres are you riding?',
+    body: 'Studded tyres dramatically reduce slipperiness on ice and snow. Pick what you ride — you can change this later.',
+    normal: 'Normal',
+    studded: 'Studded',
   },
   sample: {
     midpoint: 'midpoint',
@@ -104,6 +111,7 @@ const en = {
     ruleHeader: 'Condition',
     pointsHeader: 'Points',
     studdedHeader: 'Studs',
+    studdedPointsHeader: 'Studs effect',
     rules: {
       overnightLow: 'Overnight low below 0 °C',
       hardFreeze: 'Overnight low below -3 °C',

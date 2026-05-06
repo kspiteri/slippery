@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Sun, Moon, RefreshCw } from 'lucide-react'
 import i18n from './i18n'
-import { loadAddresses } from './state'
+import { loadAddresses, loadTyrePref, saveTyrePref, type TyrePref } from './state'
 import { fetchRoute } from './api/ors'
 import { fetchWeatherAll } from './api/met'
 import { buildElevationGrid } from './api/elevation'
@@ -62,6 +62,12 @@ export function App() {
   const [lastCheckedAt, setLastCheckedAt] = useState<number | null>(null)
   const [cooldownUntil, setCooldownUntil] = useState(0)
   const [lastWaypoints, setLastWaypoints] = useState<Waypoint[]>([])
+  const [tyrePref, setTyrePref] = useState<TyrePref | null>(loadTyrePref)
+
+  const chooseTyrePref = useCallback((pref: TyrePref) => {
+    saveTyrePref(pref)
+    setTyrePref(pref)
+  }, [])
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme)
@@ -203,7 +209,7 @@ export function App() {
             </div>
           </div>
         )}
-        {results && (
+        {results && tyrePref != null && (
           <Verdict
             now={results.now}
             plus2h={results.plus2h}
@@ -211,7 +217,23 @@ export function App() {
             lastCheckedAt={lastCheckedAt}
             coordinates={results.coordinates}
             multiPoint={results.multiPoint}
+            tyrePref={tyrePref}
+            onChangeTyrePref={chooseTyrePref}
           />
+        )}
+        {results && tyrePref == null && (
+          <div className="tyre-prompt">
+            <div className="tyre-prompt-heading">{t('tyrePrompt.heading')}</div>
+            <p className="tyre-prompt-body">{t('tyrePrompt.body')}</p>
+            <div className="tyre-prompt-actions">
+              <button type="button" onClick={() => chooseTyrePref('normal')}>
+                {t('tyrePrompt.normal')}
+              </button>
+              <button type="button" onClick={() => chooseTyrePref('studded')}>
+                {t('tyrePrompt.studded')}
+              </button>
+            </div>
+          </div>
         )}
       </main>
     </div>
