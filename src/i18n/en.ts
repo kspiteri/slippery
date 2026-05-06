@@ -18,6 +18,7 @@ const en = {
     swap: 'swap',
     checkRoute: 'check route',
     checking: 'checking…',
+    recentlyChecked: 'just checked',
     useLocation: 'Use current location',
     clear: 'Clear',
   },
@@ -30,6 +31,9 @@ const en = {
     tabNow: 'Now',
     tabPlus2h: '+2h',
     tabPlus8h: '+8h',
+    justNow: 'just now',
+    minutesAgo: '{{n}} min ago',
+    hoursAgo: '{{n}} h ago',
   },
   risk: {
     clear: 'Clear',
@@ -67,6 +71,12 @@ const en = {
     surface: '{{surface}} surface',
     ice_alert: 'active ice/weather warning',
     clear: 'roads look clear',
+  },
+  error: {
+    routeFailed: 'route lookup failed',
+    weatherFailed: 'weather lookup failed',
+    unknownFailed: 'something went wrong',
+    tryAgain: 'try again',
   },
 }
 

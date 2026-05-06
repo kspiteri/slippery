@@ -20,6 +20,7 @@ const no: Translations = {
     swap: 'bytt',
     checkRoute: 'sjekk rute',
     checking: 'sjekker…',
+    recentlyChecked: 'nettopp sjekket',
     useLocation: 'Bruk nåværende posisjon',
     clear: 'Tøm',
   },
@@ -32,6 +33,9 @@ const no: Translations = {
     tabNow: 'Nå',
     tabPlus2h: '+2t',
     tabPlus8h: '+8t',
+    justNow: 'akkurat nå',
+    minutesAgo: '{{n}} min siden',
+    hoursAgo: '{{n}} t siden',
   },
   risk: {
     clear: 'Greit',
@@ -69,6 +73,12 @@ const no: Translations = {
     surface: '{{surface}}-underlag',
     ice_alert: 'aktivt is-/værvarsler',
     clear: 'veiene ser fine ut',
+  },
+  error: {
+    routeFailed: 'kunne ikke hente rute',
+    weatherFailed: 'kunne ikke hente vær',
+    unknownFailed: 'noe gikk galt',
+    tryAgain: 'prøv igjen',
   },
 }
 

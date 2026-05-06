@@ -14,6 +14,7 @@ export interface Waypoint {
 interface Props {
   onCheck: (waypoints: Waypoint[]) => void
   loading: boolean
+  disabled?: boolean
 }
 
 function useAddressField(field: 'from' | 'to', onSaved: () => void, overrideValue?: string) {
@@ -266,7 +267,7 @@ let nextId = 1
 
 interface WaypointEntry { id: number; initial?: SavedAddress }
 
-export function AddressForm({ onCheck, loading }: Props) {
+export function AddressForm({ onCheck, loading, disabled }: Props) {
   const { t } = useTranslation()
   const [canCheck, setCanCheck] = useState(() => {
     const { from, to } = loadAddresses()
@@ -399,9 +400,13 @@ export function AddressForm({ onCheck, loading }: Props) {
           <ArrowUpDown size={14} />
           {t('form.swap')}
         </button>
-        <button type="submit" id="go-btn" disabled={loading || !canCheck}>
+        <button type="submit" id="go-btn" disabled={loading || !canCheck || disabled}>
           <ArrowRight size={15} />
-          {loading ? t('form.checking') : t('form.checkRoute')}
+          {loading
+            ? t('form.checking')
+            : disabled
+              ? t('form.recentlyChecked')
+              : t('form.checkRoute')}
         </button>
       </div>
     </form>

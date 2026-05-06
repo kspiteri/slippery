@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   Bike, Clock, Thermometer, Droplets, AlertTriangle,
-  Snowflake, Wind, Shirt, CheckCircle, Route, CircleDot,
+  Snowflake, Wind, Shirt, CheckCircle, Route, CircleDot, History,
 } from 'lucide-react'
 import type { SlippinessResult, RiskLevel } from '../logic/slipperiness'
 import type { RouteState } from '../App'
@@ -25,6 +25,7 @@ interface Props {
   now: RouteState
   plus2h: RouteState
   plus8h: RouteState
+  lastCheckedAt: number | null
 }
 
 type Tab = 'now' | 'plus2h' | 'plus8h'
@@ -147,10 +148,25 @@ function VerdictPanel({ data, tab }: { data: RouteState; tab: Tab }) {
   )
 }
 
-export function Verdict({ now, plus2h, plus8h }: Props) {
+export function Verdict({ now, plus2h, plus8h, lastCheckedAt }: Props) {
   const { t } = useTranslation()
   const [tab, setTab] = useState<Tab>('now')
+  const [tick, setTick] = useState(Date.now())
   const active = tab === 'now' ? now : tab === 'plus2h' ? plus2h : plus8h
+
+  useEffect(() => {
+    if (lastCheckedAt == null) return
+    const id = setInterval(() => setTick(Date.now()), 30_000)
+    return () => clearInterval(id)
+  }, [lastCheckedAt])
+
+  function formatAgo(ts: number): string {
+    const sec = Math.floor((tick - ts) / 1000)
+    if (sec < 60) return t('verdict.justNow')
+    const min = Math.floor(sec / 60)
+    if (min < 60) return t('verdict.minutesAgo', { n: min })
+    return t('verdict.hoursAgo', { n: Math.floor(min / 60) })
+  }
 
   return (
     <div className="verdict-card">
@@ -158,6 +174,14 @@ export function Verdict({ now, plus2h, plus8h }: Props) {
         <span className="route-stat"><Bike size={13} />{now.distanceKm.toFixed(1)} km</span>
         <span className="route-stat"><Clock size={13} />{Math.round(now.durationMin)} min</span>
         <span className="route-stat"><Route size={13} />{now.dominantSurface}</span>
+        {lastCheckedAt != null && (
+          <span
+            className="route-stat last-checked"
+            title={new Date(lastCheckedAt).toLocaleString()}
+          >
+            <History size={13} />{formatAgo(lastCheckedAt)}
+          </span>
+        )}
       </div>
 
       <div className="verdict-tabs">

@@ -465,6 +465,11 @@ main {
   gap: 5px;
 }
 
+.route-stat.last-checked {
+  margin-left: auto;
+  opacity: 0.7;
+}
+
 /* Verdict tabs */
 .verdict-tabs {
   display: flex;
@@ -638,15 +643,72 @@ main {
 
 /* Error */
 .error-box {
-  padding: 12px 16px;
-  background: rgba(248, 81, 73, 0.08);
-  border: 1px solid rgba(248, 81, 73, 0.25);
+  background: var(--bg-elevated);
+  border: 1px solid rgba(248, 81, 73, 0.35);
   border-radius: var(--radius);
-  font-size: 0.83rem;
-  color: #f85149;
+  backdrop-filter: blur(16px);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  animation: fadeUp 0.3s ease;
   display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  color: var(--text);
+}
+
+.error-box > svg {
+  color: #f85149;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.error-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.error-content strong {
+  color: #f85149;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.error-content p {
+  margin: 0;
+  font-size: 0.83rem;
+  color: var(--text-muted);
+  word-break: break-word;
+}
+
+.retry-btn {
+  margin-top: 6px;
+  align-self: flex-start;
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 7px 12px;
+  font-family: var(--font);
+  font-size: 0.83rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.retry-btn:hover {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+}
+
+.retry-btn:active {
+  transform: scale(0.98);
 }
 
 /* ── Responsive ──────────────────────────────────────── */
