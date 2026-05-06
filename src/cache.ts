@@ -1,6 +1,6 @@
 import type { Results } from './App'
 
-const CACHE_KEY = 'slippery_route_cache'
+const CACHE_KEY = 'slippery_route_cache_v2'
 const TTL_MS = 15 * 60 * 1000
 
 interface AddressLike {

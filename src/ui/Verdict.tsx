@@ -229,9 +229,10 @@ function VerdictPanel({ data, tab }: { data: RouteState; tab: Tab }) {
     .map((f) => t(f.key, f.params))
     .join(' · ')
 
-  const headingText = data.sampleSource === 'midpoint'
+  const sampleSource = data.sampleSource ?? 'midpoint'
+  const headingText = sampleSource === 'midpoint'
     ? t('verdict.conditions')
-    : t('verdict.conditionsAt', { point: t(`sample.${data.sampleSource}`) })
+    : t('verdict.conditionsAt', { point: t(`sample.${sampleSource}`) })
 
   return (
     <>
