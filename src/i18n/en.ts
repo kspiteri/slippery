@@ -19,6 +19,7 @@ const en = {
     checkRoute: 'check route',
     checking: 'checking…',
     recentlyChecked: 'just checked',
+    recentlyCheckedIn: 'try again in {{sec}}s',
     useLocation: 'Use current location',
     clear: 'Clear',
   },
@@ -42,6 +43,9 @@ const en = {
     start: 'near start',
     mid: 'midway',
     end: 'near destination',
+  },
+  elevation: {
+    aria: 'Elevation profile, {{gain}} m total climb',
   },
   risk: {
     clear: 'Clear',

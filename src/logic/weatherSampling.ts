@@ -3,7 +3,7 @@ import { calculateSlipperiness } from './slipperiness'
 
 const MULTI_POINT_DISTANCE_KM = 5
 const MULTI_POINT_ELEVATION_GAIN_M = 100
-const SAMPLE_FRACTIONS = [1 / 6, 1 / 2, 5 / 6]
+export const SAMPLE_FRACTIONS = [1 / 6, 1 / 2, 5 / 6]
 
 export type SamplePoint = 'midpoint' | 'start' | 'mid' | 'end'
 
@@ -42,7 +42,7 @@ export function sampleCoordinates(
   if (coordinates.length === 0) return []
   const cumulative: number[] = [0]
   for (let i = 1; i < coordinates.length; i++) {
-    cumulative.push(cumulative[i - 1] + haversineM(coordinates[i - 1], coordinates[i]))
+    cumulative.push(cumulative[i - 1] + approxDistanceM(coordinates[i - 1], coordinates[i]))
   }
   const total = cumulative[cumulative.length - 1]
   return SAMPLE_FRACTIONS.map((fraction) => {
@@ -111,7 +111,8 @@ function worstWeather(
   }
 }
 
-function haversineM(
+// Equirectangular approximation — accurate enough at ride-length distances, much faster than full haversine
+export function approxDistanceM(
   a: [number, number, number],
   b: [number, number, number],
 ): number {

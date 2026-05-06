@@ -6,6 +6,7 @@ import {
 } from 'lucide-react'
 import type { SlippinessResult, RiskLevel } from '../logic/slipperiness'
 import type { RouteState } from '../App'
+import { ElevationProfile } from './ElevationProfile'
 
 const RISK_COLOURS: Record<RiskLevel, string> = {
   'clear': '#3fb950',
@@ -46,6 +47,8 @@ interface Props {
   plus2h: RouteState
   plus8h: RouteState
   lastCheckedAt: number | null
+  coordinates: [number, number, number][]
+  multiPoint: boolean
 }
 
 type Tab = 'now' | 'plus2h' | 'plus8h'
@@ -304,7 +307,7 @@ function VerdictPanel({ data, tab }: { data: RouteState; tab: Tab }) {
   )
 }
 
-export function Verdict({ now, plus2h, plus8h, lastCheckedAt }: Props) {
+export function Verdict({ now, plus2h, plus8h, lastCheckedAt, coordinates, multiPoint }: Props) {
   const { t } = useTranslation()
   const [tab, setTab] = useState<Tab>('now')
   const [tick, setTick] = useState(Date.now())
@@ -338,6 +341,8 @@ export function Verdict({ now, plus2h, plus8h, lastCheckedAt }: Props) {
           </span>
         )}
       </div>
+
+      <ElevationProfile coordinates={coordinates} showSampleMarkers={multiPoint} />
 
       <SurfaceBar counts={now.surfaceCounts} />
 

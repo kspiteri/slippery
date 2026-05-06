@@ -34,6 +34,8 @@ export interface Results {
   now: RouteState
   plus2h: RouteState
   plus8h: RouteState
+  coordinates: [number, number, number][]
+  multiPoint: boolean
 }
 
 type Theme = 'dark' | 'light'
@@ -60,21 +62,11 @@ export function App() {
   const [lastCheckedAt, setLastCheckedAt] = useState<number | null>(null)
   const [cooldownUntil, setCooldownUntil] = useState(0)
   const [lastWaypoints, setLastWaypoints] = useState<Waypoint[]>([])
-  const [nowTick, setNowTick] = useState(Date.now())
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme)
     localStorage.setItem('slippery_theme', theme)
   }, [theme])
-
-  // Tick once a second so the cooldown disabled-state lifts without user interaction.
-  useEffect(() => {
-    if (cooldownUntil <= Date.now()) return
-    const id = setInterval(() => setNowTick(Date.now()), 1000)
-    return () => clearInterval(id)
-  }, [cooldownUntil])
-
-  const onCooldown = nowTick < cooldownUntil
 
   const toggleTheme = useCallback(() => {
     setTheme((t) => (t === 'dark' ? 'light' : 'dark'))
@@ -99,7 +91,6 @@ export function App() {
       setLastCheckedAt(cached.ts)
       setStatus('idle')
       setCooldownUntil(Date.now() + COOLDOWN_MS)
-      setNowTick(Date.now())
       return
     }
 
@@ -159,6 +150,8 @@ export function App() {
       now: buildState(weather.now, sources.now),
       plus2h: buildState(weather.plus2h, sources.plus2h),
       plus8h: buildState(weather.plus8h, sources.plus8h),
+      coordinates: route.coordinates,
+      multiPoint: sources.now !== 'midpoint',
     }
 
     const ts = setCached(from, to, waypoints, newResults)
@@ -166,7 +159,6 @@ export function App() {
     setLastCheckedAt(ts)
     setStatus('idle')
     setCooldownUntil(Date.now() + COOLDOWN_MS)
-    setNowTick(Date.now())
 
     const grid = buildElevationGrid(route.coordinates)
     renderAsciiBackground(grid, route.coordinates)
@@ -191,7 +183,7 @@ export function App() {
         </div>
       </header>
       <main>
-        <AddressForm onCheck={handleCheck} loading={status === 'loading'} disabled={onCooldown} />
+        <AddressForm onCheck={handleCheck} loading={status === 'loading'} cooldownUntil={cooldownUntil} />
         {status === 'loading' && (
           <div className="loading-state">
             <div className="spinner" />
@@ -217,6 +209,8 @@ export function App() {
             plus2h={results.plus2h}
             plus8h={results.plus8h}
             lastCheckedAt={lastCheckedAt}
+            coordinates={results.coordinates}
+            multiPoint={results.multiPoint}
           />
         )}
       </main>

@@ -1,7 +1,15 @@
 import type { Results } from './App'
 
-const CACHE_KEY = 'slippery_route_cache_v2'
+const CACHE_KEY = 'slippery_route_cache_v3'
+const STALE_KEYS = ['slippery_route_cache', 'slippery_route_cache_v2']
 const TTL_MS = 15 * 60 * 1000
+
+// Drop stale schemas on load — sessionStorage on a homescreen PWA can live for weeks
+try {
+  for (const key of STALE_KEYS) sessionStorage.removeItem(key)
+} catch {
+  // private mode / quota — ignore
+}
 
 interface AddressLike {
   lat: number

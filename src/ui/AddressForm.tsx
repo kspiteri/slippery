@@ -14,7 +14,7 @@ export interface Waypoint {
 interface Props {
   onCheck: (waypoints: Waypoint[]) => void
   loading: boolean
-  disabled?: boolean
+  cooldownUntil?: number
 }
 
 function useAddressField(field: 'from' | 'to', onSaved: () => void, overrideValue?: string) {
@@ -267,7 +267,39 @@ let nextId = 1
 
 interface WaypointEntry { id: number; initial?: SavedAddress }
 
-export function AddressForm({ onCheck, loading, disabled }: Props) {
+function CheckRouteButton({
+  loading,
+  canCheck,
+  cooldownUntil,
+}: {
+  loading: boolean
+  canCheck: boolean
+  cooldownUntil?: number
+}) {
+  const { t } = useTranslation()
+  const [now, setNow] = useState(Date.now())
+  const onCooldown = cooldownUntil != null && now < cooldownUntil
+  const remaining = onCooldown ? Math.ceil((cooldownUntil! - now) / 1000) : 0
+
+  useEffect(() => {
+    if (!onCooldown) return
+    const id = setInterval(() => setNow(Date.now()), 250)
+    return () => clearInterval(id)
+  }, [onCooldown])
+
+  return (
+    <button type="submit" id="go-btn" disabled={loading || !canCheck || onCooldown}>
+      <ArrowRight size={15} />
+      {loading
+        ? t('form.checking')
+        : onCooldown
+          ? t('form.recentlyCheckedIn', { sec: remaining })
+          : t('form.checkRoute')}
+    </button>
+  )
+}
+
+export function AddressForm({ onCheck, loading, cooldownUntil }: Props) {
   const { t } = useTranslation()
   const [canCheck, setCanCheck] = useState(() => {
     const { from, to } = loadAddresses()
@@ -400,14 +432,7 @@ export function AddressForm({ onCheck, loading, disabled }: Props) {
           <ArrowUpDown size={14} />
           {t('form.swap')}
         </button>
-        <button type="submit" id="go-btn" disabled={loading || !canCheck || disabled}>
-          <ArrowRight size={15} />
-          {loading
-            ? t('form.checking')
-            : disabled
-              ? t('form.recentlyChecked')
-              : t('form.checkRoute')}
-        </button>
+        <CheckRouteButton loading={loading} canCheck={canCheck} cooldownUntil={cooldownUntil} />
       </div>
     </form>
   )

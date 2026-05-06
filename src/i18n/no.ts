@@ -21,6 +21,7 @@ const no: Translations = {
     checkRoute: 'sjekk rute',
     checking: 'sjekker…',
     recentlyChecked: 'nettopp sjekket',
+    recentlyCheckedIn: 'prøv igjen om {{sec}}s',
     useLocation: 'Bruk nåværende posisjon',
     clear: 'Tøm',
   },
@@ -44,6 +45,9 @@ const no: Translations = {
     start: 'nær start',
     mid: 'midtveis',
     end: 'nær mål',
+  },
+  elevation: {
+    aria: 'Høydeprofil, {{gain}} m total stigning',
   },
   risk: {
     clear: 'Greit',
