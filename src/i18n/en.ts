@@ -6,6 +6,8 @@ const en = {
   header: {
     toggleTheme: 'Toggle theme',
     toggleLang: 'Norsk',
+    enterFocus: 'Enter focus mode',
+    exitFocus: 'Exit focus mode',
   },
   form: {
     from: 'from',

@@ -8,6 +8,8 @@ const no: Translations = {
   header: {
     toggleTheme: 'Bytt tema',
     toggleLang: 'English',
+    enterFocus: 'Fokusmodus',
+    exitFocus: 'Avslutt fokusmodus',
   },
   form: {
     from: 'fra',
