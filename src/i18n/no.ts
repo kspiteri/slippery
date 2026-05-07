@@ -82,6 +82,8 @@ const no: Translations = {
     rainFrom2h: '{{mm}} mm 3t fra +2t',
     rainFrom8h: '{{mm}} mm 3t fra +8t',
     iceAlert: 'Aktiv værvarsel',
+    wind: '{{ms}} m/s vind',
+    windGust: 'vindkast {{ms}} m/s',
   },
   factor: {
     overnight_low: 'temperaturen falt til {{temp}} °C i natt',
@@ -96,6 +98,8 @@ const no: Translations = {
     ice_surface: 'is på veien',
     snow_surface: 'snø på veien',
     ice_alert: 'aktivt is-/værvarsler',
+    gust_moderate: 'vindkast {{ms}} m/s',
+    gust_strong: 'sterke vindkast {{ms}} m/s',
     clear: 'veiene ser fine ut',
   },
   surface: {
@@ -130,6 +134,8 @@ const no: Translations = {
       iceSurface: 'Isunderlag',
       snowSurface: 'Snøunderlag',
       iceAlert: 'Aktivt is-/værvarsel',
+      gustModerate: 'Vindkast over 12 m/s',
+      gustStrong: 'Vindkast over 20 m/s',
     },
     thresholds: 'Risiko: 0–25 greit · 26–55 forsiktig · 56–79 høy · 80+ ikke sykle',
     studded: 'Piggdekk får fratrekk per regel som slår inn (høyre kolonne).',

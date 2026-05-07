@@ -168,7 +168,9 @@ const SCORING_RULES: ScoringRule[] = [
   { key: 'rough',        maxPoints:  5, capped: true,  studs: { kind: 'flat',   value: 0   } },
   { key: 'iceSurface',   maxPoints: 30, capped: true,  studs: { kind: 'full'               } },
   { key: 'snowSurface',  maxPoints: 15, capped: true,  studs: { kind: 'factor', value: 0.7 } },
-  { key: 'iceAlert',     maxPoints: 25, capped: false, studs: { kind: 'flat',   value: 15  } },
+  { key: 'iceAlert',      maxPoints: 25, capped: false, studs: { kind: 'flat',   value: 15  } },
+  { key: 'gustModerate',  maxPoints: 10, capped: false, studs: { kind: 'flat',   value: 0   } },
+  { key: 'gustStrong',    maxPoints: 15, capped: false, studs: { kind: 'flat',   value: 0   } },
 ]
 
 function formatPoints(maxPoints: number, capped: boolean): string {
@@ -256,7 +258,7 @@ function VerdictPanel({
 }) {
   const { t } = useTranslation()
   const { slipperiness, recentPrecipMm, precipType, rainNextHours,
-          overnightLow, hasIceAlert } = data
+          overnightLow, hasIceAlert, windSpeedMs, windGustMs } = data
   const jacket = jacketVerdict(rainNextHours, recentPrecipMm, precipType)
   const jacketColor = JACKET_COLOURS[jacket]
   const JacketIcon = jacket === 'no' ? CheckCircle : Shirt
@@ -345,6 +347,16 @@ function VerdictPanel({
             <span className="weather-pill alert-pill">
               <AlertTriangle size={11} />
               {t('pill.iceAlert')}
+            </span>
+          )}
+          <span className="weather-pill">
+            <Wind size={11} />
+            {t('pill.wind', { ms: Math.round(windSpeedMs) })}
+          </span>
+          {windGustMs > 12 && windGustMs > windSpeedMs + 3 && (
+            <span className="weather-pill">
+              <Wind size={11} />
+              {t('pill.windGust', { ms: Math.round(windGustMs) })}
             </span>
           )}
         </div>

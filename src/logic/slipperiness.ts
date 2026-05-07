@@ -150,6 +150,18 @@ export function calculateSlipperiness(
     addRule('iceAlert', 25, 15, { key: 'factor.ice_alert' })
   }
 
+  if (weather.windGustMs > 20) {
+    addRule('gustStrong', 15, 0, {
+      key: 'factor.gust_strong',
+      params: { ms: Math.round(weather.windGustMs) },
+    })
+  } else if (weather.windGustMs > 12) {
+    addRule('gustModerate', 10, 0, {
+      key: 'factor.gust_moderate',
+      params: { ms: Math.round(weather.windGustMs) },
+    })
+  }
+
   if (factors.length === 0) {
     factors.push({ key: 'factor.clear' })
   }

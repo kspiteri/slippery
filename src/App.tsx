@@ -34,6 +34,8 @@ export interface RouteState {
   recentPrecipMm: number
   precipType: string
   rainNextHours: number
+  windSpeedMs: number
+  windGustMs: number
   hasIceAlert: boolean
   sampleSource: SamplePoint
 }
@@ -177,6 +179,8 @@ export function App() {
         recentPrecipMm: w.recentPrecipMm,
         precipType: w.precipType,
         rainNextHours: w.rainNextHours,
+        windSpeedMs: w.windSpeedMs,
+        windGustMs: w.windGustMs,
         hasIceAlert: w.hasIceAlert,
         sampleSource: source,
       }

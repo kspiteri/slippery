@@ -6,6 +6,8 @@ export interface WeatherData {
   recentPrecipMm: number
   precipType: 'none' | 'rain' | 'sleet' | 'snow'
   rainNextHours: number   // total mm forecast in next 3h from offset
+  windSpeedMs: number
+  windGustMs: number
   hasIceAlert: boolean
   alertSummary: string
 }
@@ -19,7 +21,13 @@ export interface WeatherSnapshot {
 interface ForecastTimestep {
   time: string
   data: {
-    instant: { details: { air_temperature: number; precipitation_amount?: number } }
+    instant: {
+      details: {
+        air_temperature: number
+        wind_speed?: number
+        wind_speed_of_gust?: number
+      }
+    }
     next_1_hours?: { details: { precipitation_amount: number }; summary: { symbol_code: string } }
   }
 }
@@ -69,8 +77,10 @@ function deriveWeather(
     .reduce((sum, s) => sum + (s.data.next_1_hours?.details.precipitation_amount ?? 0), 0)
 
   const precipType = inferPrecipType(recentPrecipMm, overnightLow, currentTemp, currentStep)
+  const windSpeedMs = currentStep?.data.instant.details.wind_speed ?? 0
+  const windGustMs = currentStep?.data.instant.details.wind_speed_of_gust ?? windSpeedMs
 
-  return { currentTemp, overnightLow, recentPrecipMm, precipType, rainNextHours, ...alerts }
+  return { currentTemp, overnightLow, recentPrecipMm, precipType, rainNextHours, windSpeedMs, windGustMs, ...alerts }
 }
 
 async function fetchForecast(lat: number, lng: number): Promise<ForecastTimestep[]> {

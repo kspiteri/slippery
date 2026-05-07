@@ -80,6 +80,8 @@ const en = {
     rainFrom2h: '{{mm}} mm 3h from +2h',
     rainFrom8h: '{{mm}} mm 3h from +8h',
     iceAlert: 'Active weather warning',
+    wind: '{{ms}} m/s wind',
+    windGust: 'gusts {{ms}} m/s',
   },
   factor: {
     overnight_low: 'temp dropped to {{temp}} °C overnight',
@@ -94,6 +96,8 @@ const en = {
     ice_surface: 'ice on the road',
     snow_surface: 'snow on the road',
     ice_alert: 'active ice/weather warning',
+    gust_moderate: 'gusts {{ms}} m/s',
+    gust_strong: 'strong gusts {{ms}} m/s',
     clear: 'roads look clear',
   },
   surface: {
@@ -128,6 +132,8 @@ const en = {
       iceSurface: 'Ice surface',
       snowSurface: 'Snow surface',
       iceAlert: 'Active ice/weather alert',
+      gustModerate: 'Gusts above 12 m/s',
+      gustStrong: 'Gusts above 20 m/s',
     },
     thresholds: 'Risk: 0–25 clear · 26–55 caution · 56–79 high · 80+ don\'t ride',
     studded: 'Studded tyres earn the right-column reduction per rule that fires.',
