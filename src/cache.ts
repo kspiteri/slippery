@@ -1,7 +1,7 @@
 import type { Results } from './App'
 
-const CACHE_KEY = 'slippery_route_cache_v3'
-const STALE_KEYS = ['slippery_route_cache', 'slippery_route_cache_v2']
+const CACHE_KEY = 'slippery_route_cache_v4'
+const STALE_KEYS = ['slippery_route_cache', 'slippery_route_cache_v2', 'slippery_route_cache_v3']
 const TTL_MS = 15 * 60 * 1000
 
 // Drop stale schemas on load — sessionStorage on a homescreen PWA can live for weeks

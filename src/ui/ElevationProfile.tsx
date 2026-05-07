@@ -4,6 +4,7 @@ import { elevationGain, approxDistanceM, SAMPLE_FRACTIONS } from '../logic/weath
 interface Props {
   coordinates: [number, number, number][] // [lng, lat, elev]
   showSampleMarkers: boolean
+  color?: string
 }
 
 const WIDTH = 600
@@ -13,7 +14,7 @@ const PAD_Y = 6
 const RESAMPLE_POINTS = 80
 const HIDE_BELOW_GAIN_M = 20
 
-export function ElevationProfile({ coordinates, showSampleMarkers }: Props) {
+export function ElevationProfile({ coordinates, showSampleMarkers, color }: Props) {
   const { t } = useTranslation()
   if (coordinates.length < 2) return null
   const gain = Math.round(elevationGain(coordinates))
@@ -31,7 +32,7 @@ export function ElevationProfile({ coordinates, showSampleMarkers }: Props) {
   let cursor = 0
   for (let i = 0; i < RESAMPLE_POINTS; i++) {
     const target = (i / (RESAMPLE_POINTS - 1)) * total
-    while (cursor < cumulative.length - 1 && cumulative[cursor] < target) cursor++
+    while (cursor < cumulative.length - 1 && cumulative[cursor + 1] <= target) cursor++
     samples.push({ d: target, elev: coordinates[cursor][2] ?? 0 })
   }
 
@@ -60,7 +61,9 @@ export function ElevationProfile({ coordinates, showSampleMarkers }: Props) {
   }
 
   return (
-    <div className="elevation-profile" aria-label={t('elevation.aria', { gain })}>
+    <div className="elevation-profile" aria-label={t('elevation.aria', { gain })}
+      style={color ? { '--accent': color } as React.CSSProperties : undefined}
+    >
       <svg
         viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
         preserveAspectRatio="none"

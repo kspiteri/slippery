@@ -16,8 +16,15 @@ export interface GeocodeSuggestion {
   lng: number
 }
 
+export interface RouteSegment {
+  startIdx: number
+  endIdx: number
+  surface: string
+}
+
 export interface RouteResult {
   coordinates: [number, number, number][] // [lng, lat, elev]
+  segments: RouteSegment[]
   surfaceCounts: Record<string, number>
   dominantSurface: string
   distanceKm: number
@@ -133,6 +140,7 @@ export async function fetchRoute(
   const durationMin = summary.duration / 60
 
   const surfaceCounts: Record<string, number> = {}
+  const segments: RouteSegment[] = []
   const SURFACE_NAMES: Record<number, string> = {
     0: 'unknown', 1: 'paved', 2: 'unpaved', 3: 'asphalt', 4: 'concrete',
     5: 'cobblestone', 6: 'metal', 7: 'wood', 8: 'compacted gravel',
@@ -144,6 +152,7 @@ export async function fetchRoute(
   if (surfaceExtra?.values) {
     for (const [startIdx, endIdx, code] of surfaceExtra.values) {
       const name = SURFACE_NAMES[code] ?? 'unknown'
+      segments.push({ startIdx, endIdx, surface: name })
       // sum actual segment distances (metres) between coordinate points
       let dist = 0
       for (let i = startIdx; i < endIdx && i + 1 < coordinates.length; i++) {
@@ -155,7 +164,7 @@ export async function fetchRoute(
 
   const dominantSurface = Object.entries(surfaceCounts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'unknown'
 
-  return { coordinates, surfaceCounts, dominantSurface, distanceKm, durationMin }
+  return { coordinates, segments, surfaceCounts, dominantSurface, distanceKm, durationMin }
 }
 
 function segmentDistanceM(

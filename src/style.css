@@ -479,6 +479,55 @@ main {
   opacity: 0.7;
 }
 
+.map-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 11px;
+  padding: 4px 10px;
+  margin: 6px 0 4px;
+}
+.map-toggle-btn:hover {
+  color: var(--text);
+  border-color: var(--text-muted);
+}
+
+.profile-tabs {
+  display: flex;
+  gap: 2px;
+  margin-bottom: 6px;
+}
+.profile-tab {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 11px;
+  padding: 2px 10px 4px;
+}
+.profile-tab.active {
+  border-bottom-color: var(--accent);
+  color: var(--text);
+}
+
+.route-map {
+  height: 220px;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+[data-theme="dark"] .route-map .leaflet-tile {
+  filter: brightness(0.7) saturate(0.5);
+}
+
 .verdict-tabs {
   display: flex;
   border-bottom: 1px solid var(--border);

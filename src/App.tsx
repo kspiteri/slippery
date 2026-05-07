@@ -8,7 +8,7 @@ import {
   loadSavedRoutes, addSavedRoute, deleteSavedRoute, clearUserData,
   type SavedRoute, MAX_SAVED_ROUTES,
 } from './state'
-import { fetchRoute, type RouteResult } from './api/ors'
+import { fetchRoute, type RouteResult, type RouteSegment } from './api/ors'
 import { fetchWeatherAll } from './api/met'
 import { buildElevationGrid } from './api/elevation'
 import { calculateSlipperiness, type SlippinessResult } from './logic/slipperiness'
@@ -45,6 +45,7 @@ export interface Results {
   plus2h: RouteState
   plus8h: RouteState
   coordinates: [number, number, number][]
+  segments: RouteSegment[]
   multiPoint: boolean
 }
 
@@ -191,6 +192,7 @@ export function App() {
       plus2h: buildState(weather.plus2h, sources.plus2h),
       plus8h: buildState(weather.plus8h, sources.plus8h),
       coordinates: route.coordinates,
+      segments: route.segments,
       multiPoint: sources.now !== 'midpoint',
     }
 
@@ -296,6 +298,7 @@ export function App() {
             plus8h={results.plus8h}
             lastCheckedAt={lastCheckedAt}
             coordinates={results.coordinates}
+            segments={results.segments}
             multiPoint={results.multiPoint}
             tyrePref={tyrePref}
             onChangeTyrePref={chooseTyrePref}

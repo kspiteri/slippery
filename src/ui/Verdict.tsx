@@ -6,8 +6,11 @@ import {
 } from 'lucide-react'
 import type { SlippinessResult, RiskLevel } from '../logic/slipperiness'
 import type { RouteState } from '../App'
+import type { RouteSegment } from '../api/ors'
 import type { TyrePref } from '../state'
+import { SURFACE_BUCKETS, SURFACE_COLOURS, surfaceColour, type SurfaceBucket } from '../logic/surfaces'
 import { ElevationProfile } from './ElevationProfile'
+import { RouteMap } from './RouteMap'
 
 const RISK_COLOURS: Record<RiskLevel, string> = {
   'clear': '#3fb950',
@@ -23,32 +26,13 @@ const RISK_KEYS: Record<RiskLevel, string> = {
   'dont-ride': 'risk.dont_ride',
 }
 
-type SurfaceBucket = 'paved' | 'gravel' | 'dirt' | 'cobblestone' | 'frozen' | 'other'
-
-const SURFACE_BUCKETS: Record<string, SurfaceBucket> = {
-  paved: 'paved', asphalt: 'paved', concrete: 'paved',
-  'compacted gravel': 'gravel', 'fine gravel': 'gravel', gravel: 'gravel',
-  unpaved: 'dirt', dirt: 'dirt', ground: 'dirt', sand: 'dirt', mud: 'dirt',
-  cobblestone: 'cobblestone',
-  ice: 'frozen', snow: 'frozen',
-  metal: 'other', wood: 'other', salt: 'other', unknown: 'other',
-}
-
-const SURFACE_COLOURS: Record<SurfaceBucket, string> = {
-  paved: '#3fb950',
-  gravel: '#d4a574',
-  dirt: '#8b6f47',
-  cobblestone: '#a371f7',
-  frozen: '#f85149',
-  other: '#6b7a8f',
-}
-
 interface Props {
   now: RouteState
   plus2h: RouteState
   plus8h: RouteState
   lastCheckedAt: number | null
   coordinates: [number, number, number][]
+  segments: RouteSegment[]
   multiPoint: boolean
   tyrePref: TyrePref
   onChangeTyrePref: (pref: TyrePref) => void
@@ -367,9 +351,10 @@ function VerdictPanel({
   )
 }
 
-export function Verdict({ now, plus2h, plus8h, lastCheckedAt, coordinates, multiPoint, tyrePref, onChangeTyrePref, focusMode }: Props) {
+export function Verdict({ now, plus2h, plus8h, lastCheckedAt, coordinates, segments, multiPoint, tyrePref, onChangeTyrePref, focusMode }: Props) {
   const { t } = useTranslation()
   const [tab, setTab] = useState<Tab>('now')
+  const [profileTab, setProfileTab] = useState<'elevation' | 'map'>('elevation')
   const [tick, setTick] = useState(Date.now())
   const active = tab === 'now' ? now : tab === 'plus2h' ? plus2h : plus8h
 
@@ -414,14 +399,21 @@ export function Verdict({ now, plus2h, plus8h, lastCheckedAt, coordinates, multi
     <div className="card verdict-card">
       {routeBar}
 
-      <ElevationProfile coordinates={coordinates} showSampleMarkers={multiPoint} />
+      <div className="profile-tabs">
+        <button type="button" className={`profile-tab${profileTab === 'elevation' ? ' active' : ''}`} onClick={() => setProfileTab('elevation')}>{t('verdict.tabElevation')}</button>
+        <button type="button" className={`profile-tab${profileTab === 'map' ? ' active' : ''}`} onClick={() => setProfileTab('map')}>{t('verdict.tabMap')}</button>
+      </div>
+      {profileTab === 'elevation'
+        ? <ElevationProfile coordinates={coordinates} showSampleMarkers={multiPoint} color={surfaceColour(now.dominantSurface)} />
+        : <RouteMap coordinates={coordinates} segments={segments} />
+      }
 
       <SurfaceBar counts={now.surfaceCounts} />
 
       <div className="verdict-tabs">
-        <button className={`verdict-tab${tab === 'now' ? ' active' : ''}`} onClick={() => setTab('now')}>{t('verdict.tabNow')}</button>
-        <button className={`verdict-tab${tab === 'plus2h' ? ' active' : ''}`} onClick={() => setTab('plus2h')}>{t('verdict.tabPlus2h')}</button>
-        <button className={`verdict-tab${tab === 'plus8h' ? ' active' : ''}`} onClick={() => setTab('plus8h')}>{t('verdict.tabPlus8h')}</button>
+        <button type="button" className={`verdict-tab${tab === 'now' ? ' active' : ''}`} onClick={() => setTab('now')}>{t('verdict.tabNow')}</button>
+        <button type="button" className={`verdict-tab${tab === 'plus2h' ? ' active' : ''}`} onClick={() => setTab('plus2h')}>{t('verdict.tabPlus2h')}</button>
+        <button type="button" className={`verdict-tab${tab === 'plus8h' ? ' active' : ''}`} onClick={() => setTab('plus8h')}>{t('verdict.tabPlus8h')}</button>
       </div>
 
       <VerdictPanel data={active} tab={tab} tyrePref={tyrePref} onChangeTyrePref={onChangeTyrePref} />
