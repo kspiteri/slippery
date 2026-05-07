@@ -143,20 +143,44 @@ function SurfaceBar({ counts }: { counts: Record<string, number> }) {
   )
 }
 
-const SCORING_RULES: { key: string; points: string; studs: string }[] = [
-  { key: 'overnightLow', points: '+30', studs: '-20' },
-  { key: 'hardFreeze',   points: '+20', studs: '-15' },
-  { key: 'coldCurrent',  points: '+15', studs: '-5'  },
-  { key: 'thaw',         points: '+10', studs: '-8'  },
-  { key: 'coldPrecip',   points: '+20', studs: '0'   },
-  { key: 'snowExtra',    points: '+15', studs: '-10' },
-  { key: 'sleetExtra',   points: '+8',  studs: '-4'  },
-  { key: 'cobble',       points: '≤+10', studs: '0'  },
-  { key: 'rough',        points: '≤+5', studs: '0'   },
-  { key: 'iceSurface',   points: '≤+30', studs: 'full' },
-  { key: 'snowSurface',  points: '≤+15', studs: '×0.7' },
-  { key: 'iceAlert',     points: '+25', studs: '-15' },
+type StudsEffect =
+  | { kind: 'flat';   value: number }
+  | { kind: 'factor'; value: number }
+  | { kind: 'full' }
+
+interface ScoringRule {
+  key: string
+  maxPoints: number
+  capped: boolean
+  studs: StudsEffect
+}
+
+const SCORING_RULES: ScoringRule[] = [
+  { key: 'overnightLow', maxPoints: 30, capped: false, studs: { kind: 'flat',   value: 20  } },
+  { key: 'hardFreeze',   maxPoints: 20, capped: false, studs: { kind: 'flat',   value: 15  } },
+  { key: 'coldCurrent',  maxPoints: 15, capped: false, studs: { kind: 'flat',   value: 5   } },
+  { key: 'thaw',         maxPoints: 10, capped: false, studs: { kind: 'flat',   value: 8   } },
+  { key: 'coldPrecip',   maxPoints: 20, capped: false, studs: { kind: 'flat',   value: 0   } },
+  { key: 'snowExtra',    maxPoints: 15, capped: false, studs: { kind: 'flat',   value: 10  } },
+  { key: 'sleetExtra',   maxPoints:  8, capped: false, studs: { kind: 'flat',   value: 4   } },
+  { key: 'cobble',       maxPoints: 10, capped: true,  studs: { kind: 'flat',   value: 0   } },
+  { key: 'rough',        maxPoints:  5, capped: true,  studs: { kind: 'flat',   value: 0   } },
+  { key: 'iceSurface',   maxPoints: 30, capped: true,  studs: { kind: 'full'               } },
+  { key: 'snowSurface',  maxPoints: 15, capped: true,  studs: { kind: 'factor', value: 0.7 } },
+  { key: 'iceAlert',     maxPoints: 25, capped: false, studs: { kind: 'flat',   value: 15  } },
 ]
+
+function formatPoints(maxPoints: number, capped: boolean): string {
+  return capped ? `≤+${maxPoints}` : `+${maxPoints}`
+}
+
+function studsEffective(rule: ScoringRule): string {
+  const { maxPoints, capped, studs } = rule
+  const prefix = capped ? '≤' : ''
+  if (studs.kind === 'full')   return '+0'
+  if (studs.kind === 'factor') return `${prefix}+${maxPoints - Math.round(maxPoints * studs.value)}`
+  return `${prefix}+${Math.max(0, maxPoints - studs.value)}`
+}
 
 function HowScored({ result, tyrePref }: { result: SlippinessResult; tyrePref: TyrePref }) {
   const { t } = useTranslation()
@@ -207,7 +231,7 @@ function HowScored({ result, tyrePref }: { result: SlippinessResult; tyrePref: T
             {SCORING_RULES.map((r) => (
               <tr key={r.key}>
                 <td>{t(`howScored.rules.${r.key}`)}</td>
-                <td>{showStuds ? r.studs : r.points}</td>
+                <td>{showStuds ? studsEffective(r) : formatPoints(r.maxPoints, r.capped)}</td>
               </tr>
             ))}
           </tbody>
