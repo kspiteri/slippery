@@ -17,6 +17,7 @@ const no: Translations = {
     placeholderTo: 'jobbadresse',
     placeholderWaypoint: 'veipunkt',
     addWaypoint: 'legg til veipunkt',
+    removeWaypoint: 'fjern veipunkt',
     swap: 'bytt',
     checkRoute: 'sjekk rute',
     checking: 'sjekker…',
@@ -137,6 +138,21 @@ const no: Translations = {
     unknownFailed: 'noe gikk galt',
     tryAgain: 'prøv igjen',
     outsideNorway: 'bare norske adresser støttes',
+  },
+  savedRoutes: {
+    label: 'lagrede ruter',
+    save: 'lagre rute',
+    namePlaceholder: 'rutenavn (f.eks. Hjem → Jobb)',
+    confirm: 'lagre',
+    cancel: 'avbryt',
+    delete: 'slett lagret rute',
+    limitReached: 'du har 5 lagrede ruter — slett én først',
+    error: 'kunne ikke lagre rute',
+    stale: 'rutdata utdatert',
+  },
+  footer: {
+    clearData: 'slett rutedata',
+    clearDataConfirm: 'er du sikker? trykk igjen for å bekrefte',
   },
 }
 

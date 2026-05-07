@@ -13,6 +13,16 @@ export function renderAsciiBackground(grid: ElevationGrid, routeCoords: [number,
   draw()
 }
 
+export function clearAsciiBackground(): void {
+  currentGrid = null
+  currentRouteCoords = null
+  const canvas = document.getElementById('ascii-bg') as HTMLCanvasElement | null
+  if (canvas) {
+    const ctx = canvas.getContext('2d')
+    ctx?.clearRect(0, 0, canvas.width, canvas.height)
+  }
+}
+
 export function initAsciiResize(): void {
   window.addEventListener('resize', () => {
     if (currentGrid && currentRouteCoords) draw()

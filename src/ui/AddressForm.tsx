@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
-import { MapPin, X, ArrowRight, ArrowUpDown, LocateFixed, Plus } from 'lucide-react'
+import { MapPin, X, ArrowRight, ArrowUpDown, LocateFixed, Plus, Bookmark } from 'lucide-react'
 import { loadAddresses, saveAddress, clearAddress, saveWaypoints, type SavedAddress } from '../state'
 import { geocodeAutocomplete, geocodeReverse, isWithinNorway, type GeocodeSuggestion } from '../api/ors'
 
@@ -15,6 +15,8 @@ interface Props {
   onCheck: (waypoints: Waypoint[]) => void
   loading: boolean
   cooldownUntil?: number
+  onSaveRoute?: (name: string) => 'ok' | 'limit' | 'error'
+  canSave?: boolean
 }
 
 function useAddressField(field: 'from' | 'to', onSaved: () => void, overrideValue?: string) {
@@ -244,7 +246,7 @@ function WaypointField({
     <div className="field waypoint-field" ref={wrapRef}>
       <div className="waypoint-label-row">
         <span className="field-label">{t('form.via')}</span>
-        <button type="button" className="waypoint-remove-btn" aria-label="Remove waypoint" onClick={() => onRemove(id)}>
+        <button type="button" className="waypoint-remove-btn" aria-label={t('form.removeWaypoint')} onClick={() => onRemove(id)}>
           <X size={11} />
         </button>
       </div>
@@ -323,7 +325,7 @@ function CheckRouteButton({
   )
 }
 
-export function AddressForm({ onCheck, loading, cooldownUntil }: Props) {
+export function AddressForm({ onCheck, loading, cooldownUntil, onSaveRoute, canSave }: Props) {
   const { t } = useTranslation()
   const [canCheck, setCanCheck] = useState(() => {
     const { from, to } = loadAddresses()
@@ -343,6 +345,14 @@ export function AddressForm({ onCheck, loading, cooldownUntil }: Props) {
     })
     waypointsRef.current = map
   }
+  const [savingRoute, setSavingRoute] = useState(false)
+  const [routeName, setRouteName] = useState('')
+  const [saveError, setSaveError] = useState<string | null>(null)
+  const nameInputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (savingRoute) nameInputRef.current?.focus()
+  }, [savingRoute])
 
   const refreshCanCheck = useCallback(() => {
     const { from, to } = loadAddresses()
@@ -410,6 +420,36 @@ export function AddressForm({ onCheck, loading, cooldownUntil }: Props) {
     }
   }
 
+  const handleSaveClick = useCallback(() => {
+    const { from, to } = loadAddresses()
+    const defaultName = from && to
+      ? `${from.label.split(',')[0]} → ${to.label.split(',')[0]}`
+      : ''
+    setRouteName(defaultName)
+    setSaveError(null)
+    setSavingRoute(true)
+  }, [])
+
+  const handleSaveConfirm = useCallback(() => {
+    if (!onSaveRoute || !routeName.trim()) return
+    const result = onSaveRoute(routeName.trim())
+    if (result === 'ok') {
+      setSavingRoute(false)
+      setRouteName('')
+      setSaveError(null)
+    } else if (result === 'limit') {
+      setSaveError(t('savedRoutes.limitReached'))
+    } else {
+      setSaveError(t('savedRoutes.error'))
+    }
+  }, [onSaveRoute, routeName, t])
+
+  const handleSaveCancel = useCallback(() => {
+    setSavingRoute(false)
+    setRouteName('')
+    setSaveError(null)
+  }, [])
+
   return (
     <form id="route-form" className="card" onSubmit={handleSubmit}>
       <div className="fields">
@@ -447,10 +487,40 @@ export function AddressForm({ onCheck, loading, cooldownUntil }: Props) {
           overrideValue={toOverride}
         />
       </div>
+
+      {savingRoute && (
+        <div className="save-route-row">
+          <input
+            ref={nameInputRef}
+            type="text"
+            className="save-route-input"
+            placeholder={t('savedRoutes.namePlaceholder')}
+            value={routeName}
+            onChange={(e) => setRouteName(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') { e.preventDefault(); handleSaveConfirm() }
+              if (e.key === 'Escape') handleSaveCancel()
+            }}
+          />
+          <button type="button" className="save-route-confirm" onClick={handleSaveConfirm} disabled={!routeName.trim()}>
+            {t('savedRoutes.confirm')}
+          </button>
+          <button type="button" className="save-route-cancel" onClick={handleSaveCancel}>
+            <X size={12} />
+          </button>
+          {saveError && <span className="save-route-error">{saveError}</span>}
+        </div>
+      )}
+
       <div className="form-actions">
         <button type="button" className="swap-btn" onClick={handleSwap} aria-label={t('form.swap')} title={t('form.swap')}>
           <ArrowUpDown size={14} />
         </button>
+        {canSave && onSaveRoute && !savingRoute && (
+          <button type="button" className="save-route-btn" onClick={handleSaveClick} title={t('savedRoutes.save')}>
+            <Bookmark size={14} />
+          </button>
+        )}
         <CheckRouteButton loading={loading} canCheck={canCheck} cooldownUntil={cooldownUntil} />
       </div>
     </form>

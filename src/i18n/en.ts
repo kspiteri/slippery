@@ -15,6 +15,7 @@ const en = {
     placeholderTo: 'work address',
     placeholderWaypoint: 'waypoint',
     addWaypoint: 'add waypoint',
+    removeWaypoint: 'remove waypoint',
     swap: 'swap',
     checkRoute: 'check route',
     checking: 'checking…',
@@ -135,6 +136,21 @@ const en = {
     unknownFailed: 'something went wrong',
     tryAgain: 'try again',
     outsideNorway: 'only Norwegian addresses are supported',
+  },
+  savedRoutes: {
+    label: 'saved routes',
+    save: 'save route',
+    namePlaceholder: 'route name (e.g. Home → Work)',
+    confirm: 'save',
+    cancel: 'cancel',
+    delete: 'delete saved route',
+    limitReached: 'you have 5 saved routes — delete one first',
+    error: 'could not save route',
+    stale: 'route data outdated',
+  },
+  footer: {
+    clearData: 'clear route data',
+    clearDataConfirm: 'are you sure? tap again to confirm',
   },
 }
 
