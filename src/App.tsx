@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Sun, Moon, RefreshCw, Bookmark, X } from 'lucide-react'
+import { RefreshCw } from 'lucide-react'
 import i18n from './i18n'
 import {
   loadAddresses, saveAddress, saveWaypoints,
@@ -15,6 +15,9 @@ import { calculateSlipperiness, type SlippinessResult } from './logic/slipperine
 import { renderAsciiBackground, clearAsciiBackground } from './ui/ascii'
 import { AddressForm, type Waypoint } from './ui/AddressForm'
 import { Verdict } from './ui/Verdict'
+import { AppHeader } from './ui/AppHeader'
+import { TyrePrompt } from './ui/TyrePrompt'
+import { SavedRoutesList } from './ui/SavedRoutesList'
 import { AlertTriangle } from 'lucide-react'
 import { withRetry } from './lib/retry'
 import { getCached, setCached } from './cache'
@@ -51,7 +54,6 @@ interface AppError {
 }
 
 const COOLDOWN_MS = 30_000
-const ROUTE_STALE_MS = 30 * 24 * 60 * 60 * 1000
 
 function getInitialTheme(): Theme {
   const saved = localStorage.getItem('slippery_theme')
@@ -252,18 +254,7 @@ export function App() {
 
   return (
     <div id="app">
-      <header className="app-header">
-        <div className="header-title">
-          <h1>slippery</h1>
-          <p className="subtitle">{t('app.subtitle')}</p>
-        </div>
-        <div className="header-actions">
-          <button className="lang-btn" onClick={toggleLang}>{t('header.toggleLang')}</button>
-          <button className="theme-btn" onClick={toggleTheme} aria-label={t('header.toggleTheme')}>
-            {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
-          </button>
-        </div>
-      </header>
+      <AppHeader theme={theme} onToggleTheme={toggleTheme} onToggleLang={toggleLang} />
       <main>
         {status === 'loading' && (
           <div className="card loading-state">
@@ -296,20 +287,7 @@ export function App() {
             onChangeTyrePref={chooseTyrePref}
           />
         )}
-        {showTyrePrompt && (
-          <div className="card tyre-prompt">
-            <div className="tyre-prompt-heading">{t('tyrePrompt.heading')}</div>
-            <p className="tyre-prompt-body">{t('tyrePrompt.body')}</p>
-            <div className="tyre-prompt-actions">
-              <button type="button" onClick={() => chooseTyrePref('normal')}>
-                {t('tyrePrompt.normal')}
-              </button>
-              <button type="button" onClick={() => chooseTyrePref('studded')}>
-                {t('tyrePrompt.studded')}
-              </button>
-            </div>
-          </div>
-        )}
+        {showTyrePrompt && <TyrePrompt onChoose={chooseTyrePref} />}
         <AddressForm
           key={formKey}
           onCheck={handleCheck}
@@ -319,40 +297,7 @@ export function App() {
           canSave={results != null && savedRoutes.length < MAX_SAVED_ROUTES}
         />
 
-        {savedRoutes.length > 0 && (
-          <div className="saved-routes card">
-            <div className="saved-routes-header">
-              <span className="saved-routes-label">{t('savedRoutes.label')}</span>
-              <span className="saved-routes-count">{savedRoutes.length}/{MAX_SAVED_ROUTES}</span>
-            </div>
-            <ul className="saved-routes-list">
-              {savedRoutes.map((r, i) => {
-                const stale = Date.now() - r.routeCachedAt > ROUTE_STALE_MS
-                return (
-                  <li key={`${r.name}-${r.routeCachedAt}`} className="saved-route-item">
-                    <button
-                      type="button"
-                      className="saved-route-load"
-                      onClick={() => handleLoadSavedRoute(r)}
-                    >
-                      <Bookmark size={12} />
-                      <span className="saved-route-name">{r.name}</span>
-                      {stale && <span className="saved-route-stale">{t('savedRoutes.stale')}</span>}
-                    </button>
-                    <button
-                      type="button"
-                      className="saved-route-delete"
-                      aria-label={t('savedRoutes.delete')}
-                      onClick={() => handleDeleteSavedRoute(i)}
-                    >
-                      <X size={12} />
-                    </button>
-                  </li>
-                )
-              })}
-            </ul>
-          </div>
-        )}
+        <SavedRoutesList routes={savedRoutes} onLoad={handleLoadSavedRoute} onDelete={handleDeleteSavedRoute} />
       </main>
       <footer className="app-footer">
         <button
