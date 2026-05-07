@@ -1296,6 +1296,51 @@ main {
   }
 }
 
+/* ── Focus mode ─────────────────────────────────── */
+
+.focus-btn {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 7px;
+  backdrop-filter: blur(8px);
+}
+
+.focus-btn:hover {
+  color: var(--text);
+  border-color: var(--border-focus);
+}
+
+.verdict-card--focus {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 28px 24px;
+  text-align: center;
+}
+
+.verdict-focus-badge {
+  display: flex;
+  justify-content: center;
+}
+
+.verdict-focus-badge .status-badge {
+  font-size: 1.5rem;
+  padding: 10px 22px;
+  gap: 10px;
+}
+
+.verdict-focus-badge .status-dot {
+  width: 14px;
+  height: 14px;
+}
+
 /* Small phones — tighten padding */
 @media (max-width: 380px) {
   #app {

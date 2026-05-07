@@ -102,5 +102,4 @@ export function clearUserData(): void {
   localStorage.removeItem(KEY)
   localStorage.removeItem(TYRE_KEY)
   localStorage.removeItem(SAVED_ROUTES_KEY)
-  localStorage.removeItem('slippery_focus_mode')
 }

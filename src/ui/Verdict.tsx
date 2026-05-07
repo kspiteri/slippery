@@ -52,6 +52,7 @@ interface Props {
   multiPoint: boolean
   tyrePref: TyrePref
   onChangeTyrePref: (pref: TyrePref) => void
+  focusMode?: boolean
 }
 
 type Tab = 'now' | 'plus2h' | 'plus8h'
@@ -354,7 +355,7 @@ function VerdictPanel({
   )
 }
 
-export function Verdict({ now, plus2h, plus8h, lastCheckedAt, coordinates, multiPoint, tyrePref, onChangeTyrePref }: Props) {
+export function Verdict({ now, plus2h, plus8h, lastCheckedAt, coordinates, multiPoint, tyrePref, onChangeTyrePref, focusMode }: Props) {
   const { t } = useTranslation()
   const [tab, setTab] = useState<Tab>('now')
   const [tick, setTick] = useState(Date.now())
@@ -374,20 +375,32 @@ export function Verdict({ now, plus2h, plus8h, lastCheckedAt, coordinates, multi
     return t('verdict.hoursAgo', { n: Math.floor(min / 60) })
   }
 
+  const routeBar = (
+    <div className="verdict-route-bar">
+      <span className="route-stat"><Bike size={13} />{now.distanceKm.toFixed(1)} km</span>
+      <span className="route-stat"><Clock size={13} />{Math.round(now.durationMin)} min</span>
+      {lastCheckedAt != null && (
+        <span className="route-stat last-checked" title={new Date(lastCheckedAt).toLocaleString()}>
+          <History size={13} />{formatAgo(lastCheckedAt)}
+        </span>
+      )}
+    </div>
+  )
+
+  if (focusMode) {
+    return (
+      <div className="card verdict-card verdict-card--focus">
+        {routeBar}
+        <div className="verdict-focus-badge">
+          <StatusBadge risk={tyrePref === 'studded' ? now.slipperiness.studdedRisk : now.slipperiness.normalRisk} />
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="card verdict-card">
-      <div className="verdict-route-bar">
-        <span className="route-stat"><Bike size={13} />{now.distanceKm.toFixed(1)} km</span>
-        <span className="route-stat"><Clock size={13} />{Math.round(now.durationMin)} min</span>
-        {lastCheckedAt != null && (
-          <span
-            className="route-stat last-checked"
-            title={new Date(lastCheckedAt).toLocaleString()}
-          >
-            <History size={13} />{formatAgo(lastCheckedAt)}
-          </span>
-        )}
-      </div>
+      {routeBar}
 
       <ElevationProfile coordinates={coordinates} showSampleMarkers={multiPoint} />
 

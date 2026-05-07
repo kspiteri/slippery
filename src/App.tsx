@@ -74,6 +74,7 @@ export function App() {
   const [savedRoutes, setSavedRoutes] = useState<SavedRoute[]>(loadSavedRoutes)
   const [formKey, setFormKey] = useState(0)
   const [clearConfirm, setClearConfirm] = useState(false)
+  const [focusMode, setFocusMode] = useState(false)
   const clearConfirmTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const lastRouteRef = useRef<RouteResult | null>(null)
 
@@ -94,6 +95,8 @@ export function App() {
   const toggleTheme = useCallback(() => {
     setTheme((t) => (t === 'dark' ? 'light' : 'dark'))
   }, [])
+
+  const toggleFocusMode = useCallback(() => setFocusMode((f) => !f), [])
 
   const toggleLang = useCallback(() => {
     const next = i18n.language === 'no' ? 'en' : 'no'
@@ -254,7 +257,14 @@ export function App() {
 
   return (
     <div id="app">
-      <AppHeader theme={theme} onToggleTheme={toggleTheme} onToggleLang={toggleLang} />
+      <AppHeader
+        theme={theme}
+        onToggleTheme={toggleTheme}
+        onToggleLang={toggleLang}
+        focusMode={focusMode}
+        onToggleFocus={toggleFocusMode}
+        canFocus={results != null}
+      />
       <main>
         {status === 'loading' && (
           <div className="card loading-state">
@@ -285,29 +295,35 @@ export function App() {
             multiPoint={results.multiPoint}
             tyrePref={tyrePref}
             onChangeTyrePref={chooseTyrePref}
+            focusMode={focusMode}
           />
         )}
-        {showTyrePrompt && <TyrePrompt onChoose={chooseTyrePref} />}
-        <AddressForm
-          key={formKey}
-          onCheck={handleCheck}
-          loading={status === 'loading'}
-          cooldownUntil={cooldownUntil}
-          onSaveRoute={handleSaveRoute}
-          canSave={results != null && savedRoutes.length < MAX_SAVED_ROUTES}
-        />
-
-        <SavedRoutesList routes={savedRoutes} onLoad={handleLoadSavedRoute} onDelete={handleDeleteSavedRoute} />
+        {!focusMode && showTyrePrompt && <TyrePrompt onChoose={chooseTyrePref} />}
+        {!focusMode && (
+          <AddressForm
+            key={formKey}
+            onCheck={handleCheck}
+            loading={status === 'loading'}
+            cooldownUntil={cooldownUntil}
+            onSaveRoute={handleSaveRoute}
+            canSave={results != null && savedRoutes.length < MAX_SAVED_ROUTES}
+          />
+        )}
+        {!focusMode && (
+          <SavedRoutesList routes={savedRoutes} onLoad={handleLoadSavedRoute} onDelete={handleDeleteSavedRoute} />
+        )}
       </main>
-      <footer className="app-footer">
-        <button
-          type="button"
-          className={`clear-data-btn${clearConfirm ? ' clear-data-btn--confirm' : ''}`}
-          onClick={handleClearData}
-        >
-          {clearConfirm ? t('footer.clearDataConfirm') : t('footer.clearData')}
-        </button>
-      </footer>
+      {!focusMode && (
+        <footer className="app-footer">
+          <button
+            type="button"
+            className={`clear-data-btn${clearConfirm ? ' clear-data-btn--confirm' : ''}`}
+            onClick={handleClearData}
+          >
+            {clearConfirm ? t('footer.clearDataConfirm') : t('footer.clearData')}
+          </button>
+        </footer>
+      )}
     </div>
   )
 }
