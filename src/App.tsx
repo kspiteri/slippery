@@ -265,6 +265,25 @@ export function App() {
         </div>
       </header>
       <main>
+        {status === 'loading' && (
+          <div className="card loading-state">
+            <div className="spinner" />
+            {t('app.loading')}
+          </div>
+        )}
+        {status === 'error' && error && (
+          <div className="card error-box">
+            <AlertTriangle size={15} />
+            <div className="error-content">
+              <strong>{t(`error.${error.source}Failed`)}</strong>
+              <p>{error.message}</p>
+              <button type="button" className="retry-btn" onClick={handleRetry}>
+                <RefreshCw size={13} />
+                {t('error.tryAgain')}
+              </button>
+            </div>
+          </div>
+        )}
         {showVerdict && (
           <Verdict
             now={results.now}
@@ -332,26 +351,6 @@ export function App() {
                 )
               })}
             </ul>
-          </div>
-        )}
-
-        {status === 'loading' && (
-          <div className="card loading-state">
-            <div className="spinner" />
-            {t('app.loading')}
-          </div>
-        )}
-        {status === 'error' && error && (
-          <div className="card error-box">
-            <AlertTriangle size={15} />
-            <div className="error-content">
-              <strong>{t(`error.${error.source}Failed`)}</strong>
-              <p>{error.message}</p>
-              <button type="button" className="retry-btn" onClick={handleRetry}>
-                <RefreshCw size={13} />
-                {t('error.tryAgain')}
-              </button>
-            </div>
           </div>
         )}
       </main>
