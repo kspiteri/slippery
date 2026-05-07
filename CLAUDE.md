@@ -28,10 +28,12 @@ Requires `VITE_ORS_KEY` in `.env.local` (OpenRouteService API key) to run locall
 ### Key directories
 
 - `src/api/` — ORS (routing + geocoding), MET Norway (forecast + alerts), and elevation grid builder
-- `src/logic/slipperiness.ts` — risk scoring algorithm; score thresholds: 0–25 clear, 26–55 caution, 56–79 high, 80+ don't ride; studded tyres subtract 35 before re-evaluating
-- `src/ui/` — `AddressForm`, `Verdict`, and ASCII elevation canvas renderer
+- `src/logic/slipperiness.ts` — risk scoring algorithm; score thresholds: 0–25 clear, 26–55 caution, 56–79 high, 80+ don't ride; studded tyres subtract variable points per rule
+- `src/logic/weatherSampling.ts` — multi-point weather sampling (3 points along route for routes >5 km or >100 m elevation gain); `aggregateSnapshots` picks worst-scoring point per horizon; exposes which sample point (`start`/`mid`/`end`) drove the verdict
+- `src/ui/` — `AddressForm`, `Verdict`, `ElevationProfile` (SVG sparkline with sample-point markers), and `ascii.ts` (block-character terrain + route map drawn on a fullscreen canvas background)
+- `src/ui/AddressForm.tsx` — geocodes restricted to Norway; inline field error shown for out-of-bounds addresses; auto-detects GPS location on first load; tyre preference persisted in `localStorage` (`slippery_tyres`)
 - `src/i18n/` — EN/NO translations via i18next; language stored in `localStorage` (`slippery_lang`)
-- `src/state.ts` — saved from/to/waypoints in `localStorage` (`slippery_addresses`)
+- `src/state.ts` — from/to/waypoints persisted in `localStorage` (`slippery_addresses`); tyre pref in `slippery_tyres`
 
 ### Deployment
 
