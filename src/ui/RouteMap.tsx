@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import type { RouteSegment } from '../api/ors'
@@ -9,9 +9,29 @@ interface Props {
   segments: RouteSegment[]
 }
 
+const TILES = {
+  cyclosm: {
+    url: 'https://tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png',
+    maxZoom: 20,
+    attribution: '<a href="https://www.cyclosm.org">CyclOSM</a> · © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    label: 'OSM',
+  },
+  osm: {
+    url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    maxZoom: 19,
+    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    label: 'Cycling',
+  },
+}
+
+type TileKey = keyof typeof TILES
+
 export function RouteMap({ coordinates, segments }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<L.Map | null>(null)
+  const tileLayerRef = useRef<L.TileLayer | null>(null)
+  const attributionRef = useRef<L.Control.Attribution | null>(null)
+  const [tileKey, setTileKey] = useState<TileKey>('cyclosm')
 
   useEffect(() => {
     if (!containerRef.current || coordinates.length === 0) return
@@ -21,18 +41,16 @@ export function RouteMap({ coordinates, segments }: Props) {
       mapRef.current = null
     }
 
+    const tile = TILES[tileKey]
     const map = L.map(containerRef.current, {
       zoomControl: true,
       scrollWheelZoom: false,
       attributionControl: false,
     })
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 18,
-    }).addTo(map)
-
-    L.control.attribution({ prefix: false })
-      .addAttribution('© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>')
+    tileLayerRef.current = L.tileLayer(tile.url, { maxZoom: tile.maxZoom }).addTo(map)
+    attributionRef.current = L.control.attribution({ prefix: false })
+      .addAttribution(tile.attribution)
       .addTo(map)
 
     const toLatLng = (i: number): L.LatLngTuple => [coordinates[i][1], coordinates[i][0]]
@@ -69,7 +87,6 @@ export function RouteMap({ coordinates, segments }: Props) {
     map.fitBounds(L.latLngBounds(allLatLngs), { padding: [16, 16] })
     mapRef.current = map
 
-    // Recalculate layout when container becomes visible (e.g. tab switch from elevation)
     const observer = new ResizeObserver(() => {
       if (containerRef.current && containerRef.current.offsetWidth > 0) {
         map.invalidateSize()
@@ -82,7 +99,21 @@ export function RouteMap({ coordinates, segments }: Props) {
       map.remove()
       mapRef.current = null
     }
-  }, [coordinates, segments])
+  }, [coordinates, segments, tileKey])
 
-  return <div ref={containerRef} className="route-map" />
+  const nextKey: TileKey = tileKey === 'cyclosm' ? 'osm' : 'cyclosm'
+
+  return (
+    <div className="route-map-wrap">
+      <div ref={containerRef} className="route-map" />
+      <button
+        type="button"
+        className="map-layer-btn"
+        onClick={() => setTileKey(nextKey)}
+        title={`Switch to ${TILES[nextKey].label === 'Cycling' ? 'cycling' : 'standard'} map`}
+      >
+        {TILES[nextKey].label}
+      </button>
+    </div>
+  )
 }

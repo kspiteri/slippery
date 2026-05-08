@@ -107,43 +107,48 @@ export function App() {
     localStorage.setItem('slippery_lang', next)
   }, [])
 
-  const handleCheck = useCallback(async (waypoints: Waypoint[], preloadedRoute?: RouteResult) => {
+  const [routePreview, setRoutePreview] = useState<RouteResult | null>(null)
+
+  const handleFetchRoute = useCallback(async (waypoints: Waypoint[]) => {
     const { from, to } = loadAddresses()
     if (!from || !to) return
 
     setError(null)
     setLastWaypoints(waypoints)
 
-    if (!preloadedRoute) {
-      const cached = getCached(from, to, waypoints)
-      if (cached) {
-        setResults(cached.results)
-        setLastCheckedAt(cached.ts)
-        setStatus('idle')
-        setCooldownUntil(Date.now() + COOLDOWN_MS)
-        if (cached.results.coordinates.length) {
-          const grid = buildElevationGrid(cached.results.coordinates)
-          renderAsciiBackground(grid, cached.results.coordinates)
-        }
-        return
+    const cached = getCached(from, to, waypoints)
+    if (cached) {
+      setResults(cached.results)
+      setLastCheckedAt(cached.ts)
+      setStatus('idle')
+      setRoutePreview(null)
+      setCooldownUntil(Date.now() + COOLDOWN_MS)
+      if (cached.results.coordinates.length) {
+        const grid = buildElevationGrid(cached.results.coordinates)
+        renderAsciiBackground(grid, cached.results.coordinates)
       }
+      return
     }
 
     setStatus('loading')
-    setResults(null)
 
-    let route: RouteResult
-    if (preloadedRoute) {
-      route = preloadedRoute
-    } else {
-      try {
-        route = await withRetry(() => fetchRoute(from, to, waypoints))
-      } catch (err) {
-        setError({ source: 'route', message: err instanceof Error ? err.message : String(err) })
-        setStatus('error')
-        return
-      }
+    try {
+      const route = await withRetry(() => fetchRoute(from, to, waypoints))
+      setRoutePreview(route)
+      setStatus('idle')
+    } catch (err) {
+      setError({ source: 'route', message: err instanceof Error ? err.message : String(err) })
+      setStatus('error')
     }
+  }, [])
+
+  const handleFetchWeather = useCallback(async (route: RouteResult, waypoints: Waypoint[]) => {
+    const { from, to } = loadAddresses()
+    if (!from || !to) return
+
+    setStatus('loading')
+    setResults(null)
+    setRoutePreview(null)
 
     let weather: Awaited<ReturnType<typeof fetchWeatherAll>>
     let sources: { now: SamplePoint; plus2h: SamplePoint; plus8h: SamplePoint }
@@ -208,8 +213,8 @@ export function App() {
   }, [])
 
   const handleRetry = useCallback(() => {
-    handleCheck(lastWaypoints)
-  }, [handleCheck, lastWaypoints])
+    handleFetchRoute(lastWaypoints)
+  }, [handleFetchRoute, lastWaypoints])
 
   const handleSaveRoute = useCallback((name: string): 'ok' | 'limit' | 'error' => {
     const route = lastRouteRef.current
@@ -229,8 +234,9 @@ export function App() {
     saveWaypoints(saved.waypoints)
     setFormKey((k) => k + 1)
     const waypoints: Waypoint[] = saved.waypoints.map((w, i) => ({ id: i, ...w }))
-    handleCheck(waypoints, saved.route)
-  }, [handleCheck])
+    setLastWaypoints(waypoints)
+    handleFetchWeather(saved.route, waypoints)
+  }, [handleFetchWeather])
 
   const handleDeleteSavedRoute = useCallback((index: number) => {
     setSavedRoutes(deleteSavedRoute(index))
@@ -248,6 +254,7 @@ export function App() {
     clearAsciiBackground()
     setSavedRoutes([])
     setResults(null)
+    setRoutePreview(null)
     setLastCheckedAt(null)
     setLastWaypoints([])
     setCooldownUntil(0)
@@ -309,7 +316,10 @@ export function App() {
         {!focusMode && (
           <AddressForm
             key={formKey}
-            onCheck={handleCheck}
+            onFetchRoute={handleFetchRoute}
+            onConfirm={(waypoints) => routePreview && handleFetchWeather(routePreview, waypoints)}
+            onAddressChange={() => setRoutePreview(null)}
+            routePreview={routePreview}
             loading={status === 'loading'}
             cooldownUntil={cooldownUntil}
             onSaveRoute={handleSaveRoute}

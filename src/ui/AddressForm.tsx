@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
-import { MapPin, X, ArrowRight, ArrowUpDown, LocateFixed, Plus, Bookmark } from 'lucide-react'
+import { MapPin, X, ArrowRight, ArrowUpDown, LocateFixed, Plus, Bookmark, GripVertical } from 'lucide-react'
 import { loadAddresses, saveAddress, clearAddress, saveWaypoints, type SavedAddress } from '../state'
 import { geocodeAutocomplete, geocodeReverse, isWithinNorway, type GeocodeSuggestion } from '../api/ors'
+import type { RouteResult } from '../api/ors'
+import { RouteMap } from './RouteMap'
 
 export interface Waypoint {
   id: number
@@ -12,7 +14,10 @@ export interface Waypoint {
 }
 
 interface Props {
-  onCheck: (waypoints: Waypoint[]) => void
+  onFetchRoute: (waypoints: Waypoint[]) => void
+  onConfirm: (waypoints: Waypoint[]) => void
+  onAddressChange: () => void
+  routePreview: RouteResult | null
   loading: boolean
   cooldownUntil?: number
   onSaveRoute?: (name: string) => 'ok' | 'limit' | 'error'
@@ -223,11 +228,21 @@ function WaypointField({
   onResolved,
   onRemove,
   initialValue,
+  onDragStart,
+  onDragOver,
+  onDrop,
+  isDragging,
+  isDragOver,
 }: {
   id: number
   onResolved: (id: number, s: GeocodeSuggestion) => void
   onRemove: (id: number) => void
   initialValue?: SavedAddress
+  onDragStart?: () => void
+  onDragOver?: (e: React.DragEvent) => void
+  onDrop?: () => void
+  isDragging?: boolean
+  isDragOver?: boolean
 }) {
   const { t } = useTranslation()
   const { value, setValue, suggestions, open, outOfBounds, handleInput, handleSelect, setOpen } =
@@ -243,8 +258,16 @@ function WaypointField({
   }, [setOpen])
 
   return (
-    <div className="field waypoint-field" ref={wrapRef}>
+    <div
+      className={`field waypoint-field${isDragging ? ' dragging' : ''}${isDragOver ? ' drag-over' : ''}`}
+      ref={wrapRef}
+      draggable
+      onDragStart={onDragStart}
+      onDragOver={onDragOver}
+      onDrop={onDrop}
+    >
       <div className="waypoint-label-row">
+        <span className="waypoint-drag-handle"><GripVertical size={13} /></span>
         <span className="field-label">{t('form.via')}</span>
         <button type="button" className="waypoint-remove-btn" aria-label={t('form.removeWaypoint')} onClick={() => onRemove(id)}>
           <X size={11} />
@@ -295,10 +318,12 @@ function CheckRouteButton({
   loading,
   canCheck,
   cooldownUntil,
+  hasPreview,
 }: {
   loading: boolean
   canCheck: boolean
   cooldownUntil?: number
+  hasPreview: boolean
 }) {
   const { t } = useTranslation()
   const [now, setNow] = useState(Date.now())
@@ -320,12 +345,14 @@ function CheckRouteButton({
         ? t('form.checking')
         : onCooldown
           ? t('form.recentlyCheckedIn', { sec: remaining })
-          : t('form.checkRoute')}
+          : hasPreview
+            ? t('form.refetchRoute')
+            : t('form.checkRoute')}
     </button>
   )
 }
 
-export function AddressForm({ onCheck, loading, cooldownUntil, onSaveRoute, canSave }: Props) {
+export function AddressForm({ onFetchRoute, onConfirm, onAddressChange, routePreview, loading, cooldownUntil, onSaveRoute, canSave }: Props) {
   const { t } = useTranslation()
   const [canCheck, setCanCheck] = useState(() => {
     const { from, to } = loadAddresses()
@@ -348,6 +375,8 @@ export function AddressForm({ onCheck, loading, cooldownUntil, onSaveRoute, canS
   const [savingRoute, setSavingRoute] = useState(false)
   const [routeName, setRouteName] = useState('')
   const [saveError, setSaveError] = useState<string | null>(null)
+  const [dragIndex, setDragIndex] = useState<number | null>(null)
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
   const nameInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -357,7 +386,8 @@ export function AddressForm({ onCheck, loading, cooldownUntil, onSaveRoute, canS
   const refreshCanCheck = useCallback(() => {
     const { from, to } = loadAddresses()
     setCanCheck(!!from && !!to)
-  }, [])
+    onAddressChange()
+  }, [onAddressChange])
 
   useEffect(() => {
     const { from } = loadAddresses()
@@ -405,9 +435,24 @@ export function AddressForm({ onCheck, loading, cooldownUntil, onSaveRoute, canS
 
   const resolveWaypoint = useCallback((id: number, s: GeocodeSuggestion) => {
     waypointsRef.current.set(id, { id, label: s.label, lat: s.lat, lng: s.lng })
-    saveWaypoints(
-      Array.from(waypointsRef.current.values()),
-    )
+    setWaypoints((prev) => {
+      saveWaypoints(
+        prev.map((w) => waypointsRef.current.get(w.id)).filter((w): w is Waypoint => !!w),
+      )
+      return prev
+    })
+  }, [])
+
+  const reorderWaypoints = useCallback((fromIndex: number, toIndex: number) => {
+    setWaypoints((prev) => {
+      const next = [...prev]
+      const [moved] = next.splice(fromIndex, 1)
+      next.splice(toIndex, 0, moved)
+      saveWaypoints(
+        next.map((w) => waypointsRef.current.get(w.id)).filter((w): w is Waypoint => !!w),
+      )
+      return next
+    })
   }, [])
 
   function handleSubmit(e: React.FormEvent) {
@@ -416,7 +461,7 @@ export function AddressForm({ onCheck, loading, cooldownUntil, onSaveRoute, canS
       const resolved = waypoints
         .map((w) => waypointsRef.current.get(w.id))
         .filter((w): w is Waypoint => w !== undefined)
-      onCheck(resolved)
+      onFetchRoute(resolved)
     }
   }
 
@@ -462,13 +507,22 @@ export function AddressForm({ onCheck, loading, cooldownUntil, onSaveRoute, canS
           showLocate
         />
 
-        {waypoints.map((entry) => (
+        {waypoints.map((entry, index) => (
           <WaypointField
             key={entry.id}
             id={entry.id}
             onResolved={resolveWaypoint}
             onRemove={removeWaypoint}
             initialValue={entry.initial}
+            onDragStart={() => setDragIndex(index)}
+            onDragOver={(e) => { e.preventDefault(); setDragOverIndex(index) }}
+            onDrop={() => {
+              if (dragIndex !== null && dragIndex !== index) reorderWaypoints(dragIndex, index)
+              setDragIndex(null)
+              setDragOverIndex(null)
+            }}
+            isDragging={dragIndex === index}
+            isDragOver={dragOverIndex === index && dragIndex !== index}
           />
         ))}
 
@@ -521,8 +575,31 @@ export function AddressForm({ onCheck, loading, cooldownUntil, onSaveRoute, canS
             <Bookmark size={14} />
           </button>
         )}
-        <CheckRouteButton loading={loading} canCheck={canCheck} cooldownUntil={cooldownUntil} />
+        <CheckRouteButton loading={loading} canCheck={canCheck} cooldownUntil={cooldownUntil} hasPreview={routePreview !== null} />
       </div>
+
+      {routePreview && (
+        <div className="route-preview">
+          <div className="route-preview-stats">
+            <span>{routePreview.distanceKm.toFixed(1)} km</span>
+            <span>{Math.round(routePreview.durationMin)} min</span>
+          </div>
+          <RouteMap coordinates={routePreview.coordinates} segments={routePreview.segments} />
+          <button
+            type="button"
+            className="route-preview-confirm"
+            onClick={() => {
+              const resolved = waypoints
+                .map((w) => waypointsRef.current.get(w.id))
+                .filter((w): w is Waypoint => w !== undefined)
+              onConfirm(resolved)
+            }}
+          >
+            <ArrowRight size={14} />
+            {t('form.confirmConditions')}
+          </button>
+        </div>
+      )}
     </form>
   )
 }

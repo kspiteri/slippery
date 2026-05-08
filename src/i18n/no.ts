@@ -23,6 +23,8 @@ const no: Translations = {
     swap: 'bytt',
     checkRoute: 'sjekk rute',
     checking: 'sjekker…',
+    refetchRoute: 'hent rute på nytt',
+    confirmConditions: 'sjekk forhold',
     recentlyChecked: 'nettopp sjekket',
     recentlyCheckedIn: 'prøv igjen om {{sec}}s',
     useLocation: 'Bruk nåværende posisjon',

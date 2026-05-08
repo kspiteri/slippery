@@ -21,6 +21,8 @@ const en = {
     swap: 'swap',
     checkRoute: 'check route',
     checking: 'checking…',
+    refetchRoute: 're-fetch route',
+    confirmConditions: 'check conditions',
     recentlyChecked: 'just checked',
     recentlyCheckedIn: 'try again in {{sec}}s',
     useLocation: 'Use current location',
