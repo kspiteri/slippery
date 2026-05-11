@@ -314,6 +314,10 @@ let nextId = 1
 
 interface WaypointEntry { id: number; initial?: SavedAddress }
 
+function resolvedWaypoints(entries: WaypointEntry[], ref: Map<number, Waypoint>): Waypoint[] {
+  return entries.map((w) => ref.get(w.id)).filter((w): w is Waypoint => !!w)
+}
+
 function CheckRouteButton({
   loading,
   canCheck,
@@ -364,8 +368,8 @@ export function AddressForm({ onFetchRoute, onConfirm, onAddressChange, routePre
     const saved = loadAddresses().waypoints
     return saved.map((w) => ({ id: nextId++, initial: w }))
   })
-  const waypointsRef = useRef<Map<number, Waypoint>>(null as unknown as Map<number, Waypoint>)
-  if (waypointsRef.current === null) {
+  const waypointsRef = useRef<Map<number, Waypoint>>(null!)
+  if (!waypointsRef.current) {
     const map = new Map<number, Waypoint>()
     waypoints.forEach((entry) => {
       if (entry.initial) map.set(entry.id, { id: entry.id, ...entry.initial })
@@ -426,9 +430,7 @@ export function AddressForm({ onFetchRoute, onConfirm, onAddressChange, routePre
     setWaypoints((prev) => {
       const next = prev.filter((w) => w.id !== id)
       waypointsRef.current.delete(id)
-      saveWaypoints(
-        next.map((w) => waypointsRef.current.get(w.id)).filter((w): w is Waypoint => !!w),
-      )
+      saveWaypoints(resolvedWaypoints(next, waypointsRef.current))
       return next
     })
   }, [])
@@ -436,9 +438,7 @@ export function AddressForm({ onFetchRoute, onConfirm, onAddressChange, routePre
   const resolveWaypoint = useCallback((id: number, s: GeocodeSuggestion) => {
     waypointsRef.current.set(id, { id, label: s.label, lat: s.lat, lng: s.lng })
     setWaypoints((prev) => {
-      saveWaypoints(
-        prev.map((w) => waypointsRef.current.get(w.id)).filter((w): w is Waypoint => !!w),
-      )
+      saveWaypoints(resolvedWaypoints(prev, waypointsRef.current))
       return prev
     })
   }, [])
@@ -448,34 +448,24 @@ export function AddressForm({ onFetchRoute, onConfirm, onAddressChange, routePre
       const next = [...prev]
       const [moved] = next.splice(fromIndex, 1)
       next.splice(toIndex, 0, moved)
-      saveWaypoints(
-        next.map((w) => waypointsRef.current.get(w.id)).filter((w): w is Waypoint => !!w),
-      )
+      saveWaypoints(resolvedWaypoints(next, waypointsRef.current))
       return next
     })
   }, [])
 
   const handleMapClick = useCallback((lat: number, lng: number, label: string) => {
     const id = nextId++
-    const waypoint: Waypoint = { id, label, lat, lng }
-    waypointsRef.current.set(id, waypoint)
+    waypointsRef.current.set(id, { id, label, lat, lng })
     setWaypoints((prev) => {
       const next = [...prev, { id, initial: { label, lat, lng } }]
-      saveWaypoints(
-        next.map((w) => waypointsRef.current.get(w.id)).filter((w): w is Waypoint => !!w),
-      )
+      saveWaypoints(resolvedWaypoints(next, waypointsRef.current))
       return next
     })
   }, [])
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!loading && canCheck) {
-      const resolved = waypoints
-        .map((w) => waypointsRef.current.get(w.id))
-        .filter((w): w is Waypoint => w !== undefined)
-      onFetchRoute(resolved)
-    }
+    if (!loading && canCheck) onFetchRoute(resolvedWaypoints(waypoints, waypointsRef.current))
   }
 
   const handleSaveClick = useCallback(() => {
@@ -601,12 +591,7 @@ export function AddressForm({ onFetchRoute, onConfirm, onAddressChange, routePre
           <button
             type="button"
             className="route-preview-confirm"
-            onClick={() => {
-              const resolved = waypoints
-                .map((w) => waypointsRef.current.get(w.id))
-                .filter((w): w is Waypoint => w !== undefined)
-              onConfirm(resolved)
-            }}
+            onClick={() => onConfirm(resolvedWaypoints(waypoints, waypointsRef.current))}
           >
             <ArrowRight size={14} />
             {t('form.confirmConditions')}
