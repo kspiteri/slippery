@@ -10,12 +10,12 @@ export const SURFACE_BUCKETS: Record<string, SurfaceBucket> = {
 }
 
 export const SURFACE_COLOURS: Record<SurfaceBucket, string> = {
-  paved: '#3fb950',
-  gravel: '#d4a574',
-  dirt: '#8b6f47',
-  cobblestone: '#a371f7',
+  paved: '#2563eb',
+  gravel: '#d97706',
+  dirt: '#92400e',
+  cobblestone: '#7c3aed',
   frozen: '#f85149',
-  other: '#6b7a8f',
+  other: '#374151',
 }
 
 export function surfaceColour(name: string): string {
