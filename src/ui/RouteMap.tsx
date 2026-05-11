@@ -40,6 +40,10 @@ export function RouteMap({ coordinates, segments, onMapClick }: Props) {
 
   useEffect(() => { onMapClickRef.current = onMapClick }, [onMapClick])
 
+  // keep addingWaypoint ref so the click handler always sees latest value
+  const addingWaypointRef = useRef(addingWaypoint)
+  useEffect(() => { addingWaypointRef.current = addingWaypoint }, [addingWaypoint])
+
   useEffect(() => {
     if (!containerRef.current || coordinates.length === 0) return
 
@@ -123,10 +127,6 @@ export function RouteMap({ coordinates, segments, onMapClick }: Props) {
       mapRef.current = null
     }
   }, [coordinates, segments, tileKey])
-
-  // keep addingWaypoint ref so the click handler always sees latest value
-  const addingWaypointRef = useRef(addingWaypoint)
-  useEffect(() => { addingWaypointRef.current = addingWaypoint }, [addingWaypoint])
 
   const nextKey: TileKey = tileKey === 'cyclosm' ? 'osm' : 'cyclosm'
 
