@@ -13,7 +13,7 @@ interface Props {
 
 const TILES = {
   cyclosm: {
-    url: 'https://tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png',
+    url: 'https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png',
     maxZoom: 20,
     attribution: '<a href="https://www.cyclosm.org">CyclOSM</a> · © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
     label: 'Cycling',
