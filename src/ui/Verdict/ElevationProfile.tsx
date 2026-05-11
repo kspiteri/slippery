@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { elevationGain, approxDistanceM, SAMPLE_FRACTIONS } from '../logic/weatherSampling'
+import { elevationGain, approxDistanceM, SAMPLE_FRACTIONS } from '../../logic/weatherSampling'
 
 interface Props {
   coordinates: [number, number, number][] // [lng, lat, elev]
