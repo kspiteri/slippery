@@ -16,17 +16,12 @@ interface AddressLike {
   lng: number
 }
 
-interface CacheEntry {
-  results: Results
-  ts: number
-}
-
-type CacheStore = Record<string, CacheEntry>
-
 export interface CachedResults {
   results: Results
   ts: number
 }
+
+type CacheStore = Record<string, CachedResults>
 
 function routeKey(from: AddressLike, to: AddressLike, waypoints: AddressLike[]): string {
   const round = (n: number) => n.toFixed(5)
