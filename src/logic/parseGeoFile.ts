@@ -44,15 +44,32 @@ function parseGeoJSON(text: string): [number, number][] {
 
 function parseKML(text: string): [number, number][] {
   const doc = new DOMParser().parseFromString(text, 'application/xml')
-  const coordNodes = Array.from(doc.querySelectorAll('coordinates'))
   const coords: [number, number][] = []
-  for (const node of coordNodes) {
+
+  // gx:Track format (Garmin, Google Earth tracks): <gx:coord>lng lat elev</gx:coord>
+  const gxCoords = Array.from(doc.getElementsByTagName('*')).filter(
+    (el) => el.localName === 'coord' && el.namespaceURI?.includes('google.com/kml/ext'),
+  )
+  if (gxCoords.length > 0) {
+    for (const node of gxCoords) {
+      const parts = node.textContent?.trim().split(/\s+/).map(Number) ?? []
+      if (parts.length >= 2 && !parts.some(isNaN)) coords.push([parts[0], parts[1]])
+    }
+    return coords
+  }
+
+  // Standard KML: <LineString><coordinates>lng,lat,elev lng,lat,elev ...</coordinates></LineString>
+  // Skip <Polygon> and <Point> coordinates — those would corrupt the route
+  const lineStrings = Array.from(doc.getElementsByTagName('LineString'))
+  const nodes = lineStrings.length > 0
+    ? lineStrings.flatMap((ls) => Array.from(ls.getElementsByTagName('coordinates')))
+    : Array.from(doc.getElementsByTagName('coordinates'))
+
+  for (const node of nodes) {
     const triplets = node.textContent?.trim().split(/\s+/) ?? []
     for (const triplet of triplets) {
       const parts = triplet.split(',').map(Number)
-      if (parts.length >= 2 && !parts.some(isNaN)) {
-        coords.push([parts[0], parts[1]])
-      }
+      if (parts.length >= 2 && !parts.some(isNaN)) coords.push([parts[0], parts[1]])
     }
   }
   return coords
@@ -72,9 +89,13 @@ export function thinCoordinates(coords: [number, number][], maxPoints: number): 
   for (let i = 1; i < maxPoints - 1; i++) {
     const target = (i / (maxPoints - 1)) * total
     while (cursor < cumulative.length - 1 && cumulative[cursor + 1] <= target) cursor++
-    result.push(coords[cursor])
+    const next = coords[cursor]
+    const prev = result[result.length - 1]
+    if (next[0] !== prev[0] || next[1] !== prev[1]) result.push(next)
   }
-  result.push(coords[coords.length - 1])
+  const last = coords[coords.length - 1]
+  const tail = result[result.length - 1]
+  if (last[0] !== tail[0] || last[1] !== tail[1]) result.push(last)
   return result
 }
 
