@@ -91,8 +91,6 @@ async function searchNominatim(text: string): Promise<GeocodeSuggestion[]> {
   url.searchParams.set('format', 'json')
   url.searchParams.set('limit', '5')
   url.searchParams.set('countrycodes', 'no')
-  url.searchParams.set('lat', '60.3913')
-  url.searchParams.set('lon', '5.3221')
 
   try {
     const res = await fetch(url.toString(), { headers: { 'User-Agent': NOMINATIM_UA } })
