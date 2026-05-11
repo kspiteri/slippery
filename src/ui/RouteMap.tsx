@@ -3,7 +3,10 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import type { RouteSegment } from '../api/ors'
 import { geocodeReverse } from '../api/ors'
-import { surfaceColour } from '../logic/surfaces'
+import { surfaceColour, SURFACE_COLOURS } from '../logic/surfaces'
+
+// Set VITE_SURFACE_PREVIEW=true in .env.local to render one segment per surface bucket for colour testing
+const DEV_SURFACE_PREVIEW = import.meta.env.VITE_SURFACE_PREVIEW === 'true'
 
 interface Props {
   coordinates: [number, number, number][] // [lng, lat, elev]
@@ -67,8 +70,20 @@ export function RouteMap({ coordinates, segments, onMapClick }: Props) {
     const toLatLng = (i: number): L.LatLngTuple => [coordinates[i][1], coordinates[i][0]]
     let allLatLngs: L.LatLngTuple[] = []
 
-    if (segments && segments.length > 0) {
-      for (const seg of segments) {
+    const activeSegments: RouteSegment[] = DEV_SURFACE_PREVIEW
+      ? (() => {
+          const buckets = Object.keys(SURFACE_COLOURS) as (keyof typeof SURFACE_COLOURS)[]
+          const n = coordinates.length
+          return buckets.map((bucket, i) => ({
+            surface: bucket,
+            startIdx: Math.floor((i / buckets.length) * n),
+            endIdx: Math.floor(((i + 1) / buckets.length) * n) - 1,
+          }))
+        })()
+      : segments
+
+    if (activeSegments && activeSegments.length > 0) {
+      for (const seg of activeSegments) {
         const latLngs: L.LatLngTuple[] = []
         for (let i = seg.startIdx; i <= seg.endIdx && i < coordinates.length; i++) {
           latLngs.push(toLatLng(i))
@@ -84,8 +99,8 @@ export function RouteMap({ coordinates, segments, onMapClick }: Props) {
 
     if (allLatLngs.length === 0) return
 
-    const startColor = surfaceColour(segments?.[0]?.surface ?? 'unknown')
-    const endColor = surfaceColour(segments?.[segments.length - 1]?.surface ?? 'unknown')
+    const startColor = surfaceColour(activeSegments?.[0]?.surface ?? 'unknown')
+    const endColor = surfaceColour(activeSegments?.[activeSegments.length - 1]?.surface ?? 'unknown')
 
     L.circleMarker(allLatLngs[0], {
       radius: 5, color: startColor, fillColor: '#fff', fillOpacity: 1, weight: 2,
