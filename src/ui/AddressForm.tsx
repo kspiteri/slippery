@@ -455,6 +455,19 @@ export function AddressForm({ onFetchRoute, onConfirm, onAddressChange, routePre
     })
   }, [])
 
+  const handleMapClick = useCallback((lat: number, lng: number, label: string) => {
+    const id = nextId++
+    const waypoint: Waypoint = { id, label, lat, lng }
+    waypointsRef.current.set(id, waypoint)
+    setWaypoints((prev) => {
+      const next = [...prev, { id, initial: { label, lat, lng } }]
+      saveWaypoints(
+        next.map((w) => waypointsRef.current.get(w.id)).filter((w): w is Waypoint => !!w),
+      )
+      return next
+    })
+  }, [])
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!loading && canCheck) {
@@ -584,7 +597,7 @@ export function AddressForm({ onFetchRoute, onConfirm, onAddressChange, routePre
             <span>{routePreview.distanceKm.toFixed(1)} km</span>
             <span>{Math.round(routePreview.durationMin)} min</span>
           </div>
-          <RouteMap coordinates={routePreview.coordinates} segments={routePreview.segments} />
+          <RouteMap coordinates={routePreview.coordinates} segments={routePreview.segments} onMapClick={handleMapClick} />
           <button
             type="button"
             className="route-preview-confirm"

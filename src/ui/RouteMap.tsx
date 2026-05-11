@@ -2,11 +2,13 @@ import { useEffect, useRef, useState } from 'react'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import type { RouteSegment } from '../api/ors'
+import { geocodeReverse } from '../api/ors'
 import { surfaceColour } from '../logic/surfaces'
 
 interface Props {
   coordinates: [number, number, number][] // [lng, lat, elev]
   segments: RouteSegment[]
+  onMapClick?: (lat: number, lng: number, label: string) => void
 }
 
 const TILES = {
@@ -14,24 +16,29 @@ const TILES = {
     url: 'https://tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png',
     maxZoom: 20,
     attribution: '<a href="https://www.cyclosm.org">CyclOSM</a> · © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-    label: 'OSM',
+    label: 'Cycling',
   },
   osm: {
     url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
     maxZoom: 19,
     attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-    label: 'Cycling',
+    label: 'OSM',
   },
 }
 
 type TileKey = keyof typeof TILES
 
-export function RouteMap({ coordinates, segments }: Props) {
+export function RouteMap({ coordinates, segments, onMapClick }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<L.Map | null>(null)
   const tileLayerRef = useRef<L.TileLayer | null>(null)
   const attributionRef = useRef<L.Control.Attribution | null>(null)
+  const onMapClickRef = useRef(onMapClick)
   const [tileKey, setTileKey] = useState<TileKey>('cyclosm')
+  const [clicking, setClicking] = useState(false)
+  const [addingWaypoint, setAddingWaypoint] = useState(false)
+
+  useEffect(() => { onMapClickRef.current = onMapClick }, [onMapClick])
 
   useEffect(() => {
     if (!containerRef.current || coordinates.length === 0) return
@@ -85,6 +92,22 @@ export function RouteMap({ coordinates, segments }: Props) {
     }).addTo(map)
 
     map.fitBounds(L.latLngBounds(allLatLngs), { padding: [16, 16] })
+
+    if (onMapClickRef.current) {
+      map.on('click', async (e: L.LeafletMouseEvent) => {
+        if (!onMapClickRef.current || !addingWaypointRef.current) return
+        setClicking(true)
+        try {
+          const result = await geocodeReverse(e.latlng.lat, e.latlng.lng)
+          const label = result?.label ?? `${e.latlng.lat.toFixed(5)}, ${e.latlng.lng.toFixed(5)}`
+          onMapClickRef.current(e.latlng.lat, e.latlng.lng, label)
+          setAddingWaypoint(false)
+        } finally {
+          setClicking(false)
+        }
+      })
+    }
+
     mapRef.current = map
 
     const observer = new ResizeObserver(() => {
@@ -101,19 +124,35 @@ export function RouteMap({ coordinates, segments }: Props) {
     }
   }, [coordinates, segments, tileKey])
 
+  // keep addingWaypoint ref so the click handler always sees latest value
+  const addingWaypointRef = useRef(addingWaypoint)
+  useEffect(() => { addingWaypointRef.current = addingWaypoint }, [addingWaypoint])
+
   const nextKey: TileKey = tileKey === 'cyclosm' ? 'osm' : 'cyclosm'
 
   return (
     <div className="route-map-wrap">
-      <div ref={containerRef} className="route-map" />
-      <button
-        type="button"
-        className="map-layer-btn"
-        onClick={() => setTileKey(nextKey)}
-        title={`Switch to ${TILES[nextKey].label === 'Cycling' ? 'cycling' : 'standard'} map`}
-      >
-        {TILES[nextKey].label}
-      </button>
+      <div ref={containerRef} className={`route-map${addingWaypoint ? ' route-map--clickable' : ''}${clicking ? ' route-map--clicking' : ''}`} />
+      <div className="map-controls">
+        {onMapClick && (
+          <button
+            type="button"
+            className={`map-layer-btn${addingWaypoint ? ' active' : ''}`}
+            onClick={() => setAddingWaypoint((v) => !v)}
+            title={addingWaypoint ? 'Cancel adding waypoint' : 'Click map to add waypoint'}
+          >
+            + via
+          </button>
+        )}
+        <button
+          type="button"
+          className="map-layer-btn"
+          onClick={() => setTileKey(nextKey)}
+          title={`Switch to ${TILES[nextKey].label} map`}
+        >
+          {TILES[tileKey].label}
+        </button>
+      </div>
     </div>
   )
 }

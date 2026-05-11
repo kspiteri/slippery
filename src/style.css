@@ -224,7 +224,7 @@ main {
 }
 
 .waypoint-field {
-  padding-left: 12px;
+  padding: 8px 0 8px 4px;
   border-left: 2px solid var(--border);
   transition: border-color 0.15s, opacity 0.15s;
 }
@@ -597,11 +597,17 @@ main {
   margin-bottom: 0;
 }
 
-.map-layer-btn {
+.map-controls {
   position: absolute;
   top: 8px;
   right: 8px;
   z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.map-layer-btn {
   background: var(--bg);
   color: var(--text);
   border: 1px solid var(--border);
@@ -612,10 +618,25 @@ main {
   font-weight: 600;
   cursor: pointer;
   opacity: 0.85;
-  transition: opacity 0.15s;
+  transition: opacity 0.15s, background 0.15s, color 0.15s;
 }
 
 .map-layer-btn:hover { opacity: 1; }
+
+.map-layer-btn.active {
+  background: var(--accent);
+  color: #fff;
+  opacity: 1;
+  border-color: var(--accent);
+}
+
+.route-map--clickable .leaflet-container {
+  cursor: crosshair !important;
+}
+
+.route-map--clicking .leaflet-container {
+  cursor: wait !important;
+}
 
 [data-theme="dark"] .route-map .leaflet-tile {
   filter: brightness(0.7) saturate(0.5);
