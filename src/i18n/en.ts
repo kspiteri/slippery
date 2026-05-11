@@ -48,6 +48,7 @@ const en = {
     justNow: 'just now',
     minutesAgo: '{{n}} min ago',
     hoursAgo: '{{n}} h ago',
+    mapDisclaimer: "The drawn route is an approximation — your points are sent to a routing engine (OpenRouteService) which snaps them to known cycling-friendly roads and fills the gaps with its own paths. Adding more waypoints (or importing a track) nudges it closer, but it won't match exactly. That's fine for a slipperiness assessment: surface type, elevation and weather along this corridor are what drive the score, and they're effectively the same as on your intended route.",
   },
   tyrePrompt: {
     heading: 'Which tyres are you riding?',

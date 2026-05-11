@@ -50,6 +50,7 @@ const no: Translations = {
     justNow: 'akkurat nå',
     minutesAgo: '{{n}} min siden',
     hoursAgo: '{{n}} t siden',
+    mapDisclaimer: 'Den tegnede ruten er en tilnærming — punktene dine sendes til en ruteplanlegger (OpenRouteService) som snapper dem til kjente sykkelvennlige veier og fyller mellomrommene med egne traseer. Flere veipunkter (eller import av et spor) gjør den mer presis, men den vil ikke matche eksakt. Det er greit for glatthetsvurdering: underlag, høyde og vær langs denne korridoren er det som styrer poengsummen, og er stort sett det samme som på din tiltenkte rute.',
   },
   tyrePrompt: {
     heading: 'Hvilke dekk sykler du på?',

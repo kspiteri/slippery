@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { Info } from 'lucide-react'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import type { RouteSegment } from '../api/ors'
@@ -32,6 +34,7 @@ const TILES = {
 type TileKey = keyof typeof TILES
 
 export function RouteMap({ coordinates, segments, onMapClick }: Props) {
+  const { t } = useTranslation()
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<L.Map | null>(null)
   const tileLayerRef = useRef<L.TileLayer | null>(null)
@@ -40,6 +43,7 @@ export function RouteMap({ coordinates, segments, onMapClick }: Props) {
   const [tileKey, setTileKey] = useState<TileKey>('cyclosm')
   const [clicking, setClicking] = useState(false)
   const [addingWaypoint, setAddingWaypoint] = useState(false)
+  const [showDisclaimer, setShowDisclaimer] = useState(false)
 
   useEffect(() => { onMapClickRef.current = onMapClick }, [onMapClick])
 
@@ -167,7 +171,21 @@ export function RouteMap({ coordinates, segments, onMapClick }: Props) {
         >
           {TILES[tileKey].label}
         </button>
+        <button
+          type="button"
+          className={`map-layer-btn map-disclaimer-toggle${showDisclaimer ? ' active' : ''}`}
+          onClick={() => setShowDisclaimer((v) => !v)}
+          aria-expanded={showDisclaimer}
+          aria-label={t('verdict.mapDisclaimer')}
+        >
+          <Info size={12} />
+        </button>
       </div>
+      {showDisclaimer && (
+        <div className="map-disclaimer" role="note">
+          {t('verdict.mapDisclaimer')}
+        </div>
+      )}
     </div>
   )
 }
