@@ -19,6 +19,7 @@ const en = {
     addWaypoint: 'add waypoint',
     removeWaypoint: 'remove waypoint',
     swap: 'swap',
+    importRoute: 'import GPX / GeoJSON / KML',
     checkRoute: 'check route',
     checking: 'checking…',
     refetchRoute: 're-fetch route',

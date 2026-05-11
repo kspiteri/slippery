@@ -1,5 +1,6 @@
 import type { WeatherData, WeatherSnapshot } from '../api/met'
 import { calculateSlipperiness } from './slipperiness'
+import { distanceM } from './geo'
 
 const MULTI_POINT_DISTANCE_KM = 5
 const MULTI_POINT_ELEVATION_GAIN_M = 100
@@ -42,7 +43,7 @@ export function sampleCoordinates(
   if (coordinates.length === 0) return []
   const cumulative: number[] = [0]
   for (let i = 1; i < coordinates.length; i++) {
-    cumulative.push(cumulative[i - 1] + approxDistanceM(coordinates[i - 1], coordinates[i]))
+    cumulative.push(cumulative[i - 1] + distanceM(coordinates[i - 1], coordinates[i]))
   }
   const total = cumulative[cumulative.length - 1]
   return SAMPLE_FRACTIONS.map((fraction) => {
@@ -109,16 +110,4 @@ function worstWeather(
     },
     index: worstIndex,
   }
-}
-
-// Equirectangular approximation — accurate enough at ride-length distances, much faster than full haversine
-export function approxDistanceM(
-  a: [number, number, number],
-  b: [number, number, number],
-): number {
-  const R = 6371000
-  const dLat = (b[1] - a[1]) * Math.PI / 180
-  const dLng = (b[0] - a[0]) * Math.PI / 180
-  const lat = ((a[1] + b[1]) / 2) * Math.PI / 180
-  return Math.sqrt(dLat * dLat + (dLng * Math.cos(lat)) ** 2) * R
 }

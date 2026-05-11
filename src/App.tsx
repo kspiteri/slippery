@@ -8,7 +8,7 @@ import {
   loadSavedRoutes, addSavedRoute, deleteSavedRoute, clearUserData,
   type SavedRoute, MAX_SAVED_ROUTES,
 } from './state'
-import { fetchRoute, type RouteResult, type RouteSegment } from './api/ors'
+import { fetchRoute, geocodeReverse, type RouteResult, type RouteSegment } from './api/ors'
 import { fetchWeatherAll, type WeatherData } from './api/met'
 import { buildElevationGrid } from './api/elevation'
 import { calculateSlipperiness, type SlippinessResult } from './logic/slipperiness'
@@ -22,6 +22,7 @@ import { AlertTriangle } from 'lucide-react'
 import { withRetry } from './lib/retry'
 import { getCached, setCached } from './cache'
 import { needsMultiPointSampling, sampleCoordinates, aggregateSnapshots, type SamplePoint } from './logic/weatherSampling'
+import { parseGeoFile, thinCoordinates, idealWaypointCount } from './logic/parseGeoFile'
 
 export interface RouteState {
   slipperiness: SlippinessResult
@@ -57,6 +58,7 @@ interface AppError {
 }
 
 const COOLDOWN_MS = 30_000
+const IMPORT_SNAP_RADIUS_M = 50
 
 function buildState(w: WeatherData, route: RouteResult, source: SamplePoint): RouteState {
   return {
@@ -216,6 +218,37 @@ export function App() {
     handleFetchRoute(lastWaypoints)
   }, [handleFetchRoute, lastWaypoints])
 
+  const handleImportedRoute = useCallback(async (rawCoords: [number, number][]) => {
+    if (rawCoords.length < 2) return
+    const thinned = thinCoordinates(rawCoords, idealWaypointCount(rawCoords))
+    const fromCoord = thinned[0]
+    const toCoord = thinned[thinned.length - 1]
+    const interior = thinned.slice(1, -1)
+
+    const from = { lat: fromCoord[1], lng: fromCoord[0] }
+    const to = { lat: toCoord[1], lng: toCoord[0] }
+    const waypointsFull: Waypoint[] = interior.map((c, i) => ({ id: i, label: '', lat: c[1], lng: c[0] }))
+
+    setError(null)
+    setStatus('loading')
+
+    const [fromLabel, toLabel] = await Promise.all([
+      geocodeReverse(from.lat, from.lng),
+      geocodeReverse(to.lat, to.lng),
+    ])
+    saveAddress('from', { label: fromLabel?.label ?? `${from.lat.toFixed(5)}, ${from.lng.toFixed(5)}`, lat: from.lat, lng: from.lng })
+    saveAddress('to', { label: toLabel?.label ?? `${to.lat.toFixed(5)}, ${to.lng.toFixed(5)}`, lat: to.lat, lng: to.lng })
+    setFormKey((k) => k + 1)
+
+    try {
+      const route = await withRetry(() => fetchRoute(from, to, waypointsFull, IMPORT_SNAP_RADIUS_M))
+      await handleFetchWeather(route, waypointsFull)
+    } catch (err) {
+      setError({ source: 'route', message: err instanceof Error ? err.message : String(err) })
+      setStatus('error')
+    }
+  }, [handleFetchWeather])
+
   const handleSaveRoute = useCallback((name: string): 'ok' | 'limit' | 'error' => {
     const route = lastRouteRef.current
     if (!route) return 'error'
@@ -324,6 +357,7 @@ export function App() {
             cooldownUntil={cooldownUntil}
             onSaveRoute={handleSaveRoute}
             canSave={results != null && savedRoutes.length < MAX_SAVED_ROUTES}
+            onImportRoute={handleImportedRoute}
           />
         )}
         {!focusMode && (

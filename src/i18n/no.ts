@@ -21,6 +21,7 @@ const no: Translations = {
     addWaypoint: 'legg til veipunkt',
     removeWaypoint: 'fjern veipunkt',
     swap: 'bytt',
+    importRoute: 'importer GPX / GeoJSON / KML',
     checkRoute: 'sjekk rute',
     checking: 'sjekker…',
     refetchRoute: 'hent rute på nytt',

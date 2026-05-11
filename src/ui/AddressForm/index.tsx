@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ArrowUpDown, Plus, Bookmark, X, ArrowRight } from 'lucide-react'
+import { ArrowUpDown, Plus, Bookmark, X, ArrowRight, Upload } from 'lucide-react'
 import { loadAddresses, saveAddress, clearAddress, saveWaypoints } from '../../state'
 import { geocodeReverse, type RouteResult, type GeocodeSuggestion } from '../../api/ors'
 import { RouteMap } from '../RouteMap'
+import { parseGeoFile } from '../../logic/parseGeoFile'
 import {
   AddressField, WaypointField, CheckRouteButton,
   resolvedWaypoints, getNextId,
@@ -21,9 +22,10 @@ interface Props {
   cooldownUntil?: number
   onSaveRoute?: (name: string) => 'ok' | 'limit' | 'error'
   canSave?: boolean
+  onImportRoute?: (coords: [number, number][]) => void
 }
 
-export function AddressForm({ onFetchRoute, onConfirm, onAddressChange, routePreview, loading, cooldownUntil, onSaveRoute, canSave }: Props) {
+export function AddressForm({ onFetchRoute, onConfirm, onAddressChange, routePreview, loading, cooldownUntil, onSaveRoute, canSave, onImportRoute }: Props) {
   const { t } = useTranslation()
   const [canCheck, setCanCheck] = useState(() => {
     const { from, to } = loadAddresses()
@@ -49,6 +51,7 @@ export function AddressForm({ onFetchRoute, onConfirm, onAddressChange, routePre
   const [dragIndex, setDragIndex] = useState<number | null>(null)
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
   const nameInputRef = useRef<HTMLInputElement>(null)
+  const importInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (savingRoute) nameInputRef.current?.focus()
@@ -134,6 +137,16 @@ export function AddressForm({ onFetchRoute, onConfirm, onAddressChange, routePre
     e.preventDefault()
     if (!loading && canCheck) onFetchRoute(resolvedWaypoints(waypoints, waypointsRef.current))
   }
+
+  const handleImportFile = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file || !onImportRoute) return
+    e.target.value = ''
+    try {
+      const coords = await parseGeoFile(file)
+      if (coords.length >= 2) onImportRoute(coords)
+    } catch { /* silent — bad file format */ }
+  }, [onImportRoute])
 
   const handleSaveClick = useCallback(() => {
     const { from, to } = loadAddresses()
@@ -243,6 +256,25 @@ export function AddressForm({ onFetchRoute, onConfirm, onAddressChange, routePre
         {canSave && onSaveRoute && !savingRoute && (
           <button type="button" className="save-route-btn" onClick={handleSaveClick} title={t('savedRoutes.save')}>
             <Bookmark size={14} />
+          </button>
+        )}
+        {onImportRoute && (
+          <input
+            ref={importInputRef}
+            type="file"
+            accept=".gpx,.geojson,.json,.kml"
+            style={{ display: 'none' }}
+            onChange={handleImportFile}
+          />
+        )}
+        {onImportRoute && (
+          <button
+            type="button"
+            className="save-route-btn"
+            onClick={() => importInputRef.current?.click()}
+            title={t('form.importRoute')}
+          >
+            <Upload size={14} />
           </button>
         )}
         <CheckRouteButton loading={loading} canCheck={canCheck} cooldownUntil={cooldownUntil} hasPreview={routePreview !== null} />

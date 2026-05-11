@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
-import { elevationGain, approxDistanceM, SAMPLE_FRACTIONS } from '../../logic/weatherSampling'
+import { elevationGain, SAMPLE_FRACTIONS } from '../../logic/weatherSampling'
+import { distanceM } from '../../logic/geo'
 
 interface Props {
   coordinates: [number, number, number][] // [lng, lat, elev]
@@ -22,7 +23,7 @@ export function ElevationProfile({ coordinates, showSampleMarkers, color }: Prop
 
   const cumulative: number[] = [0]
   for (let i = 1; i < coordinates.length; i++) {
-    cumulative.push(cumulative[i - 1] + approxDistanceM(coordinates[i - 1], coordinates[i]))
+    cumulative.push(cumulative[i - 1] + distanceM(coordinates[i - 1], coordinates[i]))
   }
   const total = cumulative[cumulative.length - 1]
   if (total <= 0) return null

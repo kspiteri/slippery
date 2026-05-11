@@ -2,6 +2,8 @@ const ORS_KEY = import.meta.env.VITE_ORS_KEY as string
 // Geocoding endpoints only accept the key as a query param — Authorization header triggers a CORS preflight that ORS rejects.
 // fetchRoute uses Authorization because it's a POST and ORS allows it there.
 
+import { distanceM } from '../logic/geo'
+
 // Norway bounding box (generous — includes Svalbard)
 const NO_BOUNDS = { minLat: 57.5, maxLat: 81.0, minLng: 4.0, maxLng: 32.0 }
 
@@ -110,23 +112,26 @@ export async function fetchRoute(
   from: { lat: number; lng: number },
   to: { lat: number; lng: number },
   waypoints: { lat: number; lng: number }[] = [],
+  snapRadiusM?: number,
 ): Promise<RouteResult> {
   const coords = [
     [from.lng, from.lat],
     ...waypoints.map((w) => [w.lng, w.lat]),
     [to.lng, to.lat],
   ]
+  const body = {
+    coordinates: coords,
+    elevation: true,
+    extra_info: ['surface'],
+    ...(snapRadiusM != null && { radiuses: coords.map(() => snapRadiusM) }),
+  }
   const res = await fetch('https://api.openrouteservice.org/v2/directions/cycling-regular/geojson', {
     method: 'POST',
     headers: {
       'Authorization': ORS_KEY,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      coordinates: coords,
-      elevation: true,
-      extra_info: ['surface'],
-    }),
+    body: JSON.stringify(body),
   })
   if (!res.ok) throw new Error(`Routing failed: ${res.status}`)
   const data = await res.json()
@@ -154,7 +159,7 @@ export async function fetchRoute(
       // sum actual segment distances (metres) between coordinate points
       let dist = 0
       for (let i = startIdx; i < endIdx && i + 1 < coordinates.length; i++) {
-        dist += segmentDistanceM(coordinates[i], coordinates[i + 1])
+        dist += distanceM(coordinates[i], coordinates[i + 1])
       }
       surfaceCounts[name] = (surfaceCounts[name] ?? 0) + dist
     }
@@ -163,15 +168,4 @@ export async function fetchRoute(
   const dominantSurface = Object.entries(surfaceCounts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'unknown'
 
   return { coordinates, segments, surfaceCounts, dominantSurface, distanceKm, durationMin }
-}
-
-function segmentDistanceM(
-  a: [number, number, number],
-  b: [number, number, number],
-): number {
-  const R = 6371000
-  const dLat = (b[1] - a[1]) * Math.PI / 180
-  const dLng = (b[0] - a[0]) * Math.PI / 180
-  const lat = (a[1] + b[1]) / 2 * Math.PI / 180
-  return Math.sqrt(dLat * dLat + (dLng * Math.cos(lat)) ** 2) * R
 }
