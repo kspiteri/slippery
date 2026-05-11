@@ -9,7 +9,7 @@ import {
   type SavedRoute, MAX_SAVED_ROUTES,
 } from './state'
 import { fetchRoute, type RouteResult, type RouteSegment } from './api/ors'
-import { fetchWeatherAll } from './api/met'
+import { fetchWeatherAll, type WeatherData } from './api/met'
 import { buildElevationGrid } from './api/elevation'
 import { calculateSlipperiness, type SlippinessResult } from './logic/slipperiness'
 import { renderAsciiBackground, clearAsciiBackground } from './ui/ascii'
@@ -57,6 +57,25 @@ interface AppError {
 }
 
 const COOLDOWN_MS = 30_000
+
+function buildState(w: WeatherData, route: RouteResult, source: SamplePoint): RouteState {
+  return {
+    slipperiness: calculateSlipperiness(w, route.surfaceCounts, route.distanceKm * 1000),
+    distanceKm: route.distanceKm,
+    durationMin: route.durationMin,
+    dominantSurface: route.dominantSurface,
+    surfaceCounts: route.surfaceCounts,
+    currentTemp: w.currentTemp,
+    overnightLow: w.overnightLow,
+    recentPrecipMm: w.recentPrecipMm,
+    precipType: w.precipType,
+    rainNextHours: w.rainNextHours,
+    windSpeedMs: w.windSpeedMs,
+    windGustMs: w.windGustMs,
+    hasIceAlert: w.hasIceAlert,
+    sampleSource: source,
+  }
+}
 
 function getInitialTheme(): Theme {
   const saved = localStorage.getItem('slippery_theme')
@@ -173,29 +192,10 @@ export function App() {
       return
     }
 
-    function buildState(w: typeof weather.now, source: SamplePoint): RouteState {
-      return {
-        slipperiness: calculateSlipperiness(w, route.surfaceCounts, route.distanceKm * 1000),
-        distanceKm: route.distanceKm,
-        durationMin: route.durationMin,
-        dominantSurface: route.dominantSurface,
-        surfaceCounts: route.surfaceCounts,
-        currentTemp: w.currentTemp,
-        overnightLow: w.overnightLow,
-        recentPrecipMm: w.recentPrecipMm,
-        precipType: w.precipType,
-        rainNextHours: w.rainNextHours,
-        windSpeedMs: w.windSpeedMs,
-        windGustMs: w.windGustMs,
-        hasIceAlert: w.hasIceAlert,
-        sampleSource: source,
-      }
-    }
-
     const newResults: Results = {
-      now: buildState(weather.now, sources.now),
-      plus2h: buildState(weather.plus2h, sources.plus2h),
-      plus8h: buildState(weather.plus8h, sources.plus8h),
+      now: buildState(weather.now, route, sources.now),
+      plus2h: buildState(weather.plus2h, route, sources.plus2h),
+      plus8h: buildState(weather.plus8h, route, sources.plus8h),
       coordinates: route.coordinates,
       segments: route.segments,
       multiPoint: sources.now !== 'midpoint',
