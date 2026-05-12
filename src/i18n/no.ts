@@ -10,6 +10,14 @@ const no: Translations = {
     toggleLang: 'English',
     enterFocus: 'Fokusmodus',
     exitFocus: 'Avslutt fokusmodus',
+    settings: 'Innstillinger',
+  },
+  settings: {
+    theme: 'Tema',
+    language: 'Språk',
+    fontSize: 'Skriftstørrelse',
+    fontSizeIncrease: 'Øk skriftstørrelse',
+    fontSizeDecrease: 'Reduser skriftstørrelse',
   },
   form: {
     from: 'fra',

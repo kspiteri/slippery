@@ -1,17 +1,26 @@
 import { useTranslation } from 'react-i18next'
-import { Sun, Moon, Maximize2, Minimize2 } from 'lucide-react'
+import { Maximize2, Minimize2 } from 'lucide-react'
 import { Button } from './primitives/Button'
+import { SettingsMenu } from './SettingsMenu'
+import type { FontScale } from '../state'
+import type { Theme } from '../App'
 
 interface Props {
-  theme: 'dark' | 'light'
+  theme: Theme
   onToggleTheme: () => void
   onToggleLang: () => void
+  fontScale: FontScale
+  onAdjustFontScale: (delta: 1 | -1) => void
   focusMode?: boolean
   onToggleFocus?: () => void
   canFocus?: boolean
 }
 
-export function AppHeader({ theme, onToggleTheme, onToggleLang, focusMode, onToggleFocus, canFocus }: Props) {
+export function AppHeader({
+  theme, onToggleTheme, onToggleLang,
+  fontScale, onAdjustFontScale,
+  focusMode, onToggleFocus, canFocus,
+}: Props) {
   const { t } = useTranslation()
   return (
     <header className="app-header">
@@ -28,10 +37,13 @@ export function AppHeader({ theme, onToggleTheme, onToggleLang, focusMode, onTog
             {focusMode ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
           </Button>
         )}
-        <Button onClick={onToggleLang}>{t('header.toggleLang')}</Button>
-        <Button onClick={onToggleTheme} aria-label={t('header.toggleTheme')}>
-          {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
-        </Button>
+        <SettingsMenu
+          theme={theme}
+          onToggleTheme={onToggleTheme}
+          onToggleLang={onToggleLang}
+          fontScale={fontScale}
+          onAdjustFontScale={onAdjustFontScale}
+        />
       </div>
     </header>
   )

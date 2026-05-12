@@ -1,0 +1,59 @@
+@use '../../../styles/tokens' as *;
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: rem(6);
+  padding: rem(8) rem(12);
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  font-family: var(--font);
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: rem(16);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s, opacity 0.15s, transform 0.1s;
+  white-space: nowrap;
+
+  &:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+
+  &:not(:disabled):active {
+    transform: scale(0.98);
+  }
+}
+
+.primary {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+
+  &:not(:disabled):hover {
+    opacity: 0.88;
+  }
+}
+
+.secondary {
+  background: var(--bg-input);
+  color: var(--text-muted);
+  border-color: var(--border);
+
+  &:not(:disabled):hover {
+    color: var(--accent);
+    border-color: var(--accent);
+    background: var(--accent-dim);
+  }
+}
+
+.cancel {
+  background: transparent;
+  color: var(--text-muted);
+
+  &:not(:disabled):hover {
+    color: var(--error);
+    background: color-mix(in srgb, var(--error) 8%, transparent);
+  }
+}

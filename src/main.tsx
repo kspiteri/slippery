@@ -1,6 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import './style.css'
+import './style.scss'
 import './i18n'
 import { App } from './App'
 import { initAsciiResize } from './ui/ascii'

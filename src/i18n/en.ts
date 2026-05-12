@@ -8,6 +8,14 @@ const en = {
     toggleLang: 'Norsk',
     enterFocus: 'Enter focus mode',
     exitFocus: 'Exit focus mode',
+    settings: 'Settings',
+  },
+  settings: {
+    theme: 'Theme',
+    language: 'Language',
+    fontSize: 'Font size',
+    fontSizeIncrease: 'Increase font size',
+    fontSizeDecrease: 'Decrease font size',
   },
   form: {
     from: 'from',

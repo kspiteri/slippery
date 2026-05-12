@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode, type Ref, type InputHTMLAttributes } from 'react'
-import styles from './TextField.module.css'
+import styles from './TextField.module.scss'
 
 interface Props<T> extends Omit<InputHTMLAttributes<HTMLInputElement>, 'onChange'> {
   value: string

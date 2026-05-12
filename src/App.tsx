@@ -6,6 +6,8 @@ import {
   loadAddresses, saveAddress, saveWaypoints,
   loadTyrePref, saveTyrePref, type TyrePref,
   loadSavedRoutes, addSavedRoute, deleteSavedRoute, clearUserData,
+  loadFontScale, saveFontScale, fontScaleToPercent, clampFontScale,
+  type FontScale,
   type SavedRoute, MAX_SAVED_ROUTES,
 } from './state'
 import { fetchRoute, geocodeReverse, type RouteResult, type RouteSegment } from './api/ors'
@@ -52,6 +54,7 @@ export interface Results {
 }
 
 type Theme = 'dark' | 'light'
+export type { Theme }
 
 interface AppError {
   source: 'route' | 'weather' | 'unknown'
@@ -89,6 +92,7 @@ function getInitialTheme(): Theme {
 export function App() {
   const { t } = useTranslation()
   const [theme, setTheme] = useState<Theme>(getInitialTheme)
+  const [fontScale, setFontScale] = useState<FontScale>(loadFontScale)
   const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle')
   const [error, setError] = useState<AppError | null>(null)
   const [results, setResults] = useState<Results | null>(null)
@@ -112,6 +116,15 @@ export function App() {
     document.documentElement.setAttribute('data-theme', theme)
     localStorage.setItem('slippery_theme', theme)
   }, [theme])
+
+  useEffect(() => {
+    document.documentElement.style.fontSize = `${fontScaleToPercent(fontScale)}%`
+    saveFontScale(fontScale)
+  }, [fontScale])
+
+  const adjustFontScale = useCallback((delta: 1 | -1) => {
+    setFontScale((prev) => clampFontScale(prev + delta))
+  }, [])
 
   useEffect(() => () => {
     if (clearConfirmTimer.current) clearTimeout(clearConfirmTimer.current)
@@ -308,6 +321,8 @@ export function App() {
         theme={theme}
         onToggleTheme={toggleTheme}
         onToggleLang={toggleLang}
+        fontScale={fontScale}
+        onAdjustFontScale={adjustFontScale}
         focusMode={focusMode}
         onToggleFocus={toggleFocusMode}
         canFocus={results != null}

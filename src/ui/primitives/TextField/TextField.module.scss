@@ -1,0 +1,137 @@
+@use '../../../styles/tokens' as *;
+
+.wrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: rem(4);
+}
+
+.input {
+  display: flex;
+  align-items: center;
+  gap: rem(4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-input);
+  transition: border-color 0.15s, box-shadow 0.15s;
+
+  &:focus-within {
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 3px var(--accent-dim);
+  }
+
+  input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 0.875rem;
+    padding: rem(10) rem(8);
+    min-width: 0;
+
+    &::placeholder {
+      color: var(--text-muted);
+    }
+  }
+}
+
+.input--error {
+  border-color: color-mix(in srgb, var(--error) 60%, transparent);
+
+  &:focus-within {
+    border-color: var(--error);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--error) 15%, transparent);
+  }
+}
+
+.input--focused {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px var(--accent-dim);
+}
+
+.icon {
+  color: var(--text-muted);
+  padding-left: rem(10);
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.adornment {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0 rem(10);
+  display: flex;
+  align-items: center;
+  transition: color 0.15s;
+
+  &:hover { color: var(--text); }
+  &:disabled { cursor: default; }
+}
+
+.adornment--locate {
+  padding: 0 rem(8);
+
+  &:hover { color: var(--accent); }
+}
+
+.spinner {
+  width: rem(11);
+  height: rem(11);
+  border-width: 1.5px;
+  border-style: solid;
+  border-color: var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  display: inline-block;
+}
+
+.error {
+  font-size: 0.72rem;
+  color: var(--error);
+  padding-left: rem(2);
+}
+
+.suggestions {
+  position: absolute;
+  top: calc(100% + #{rem(4)});
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: var(--bg-suggestions);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  list-style: none;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+
+  li {
+    padding: rem(9) rem(12);
+    cursor: pointer;
+    font-size: 0.82rem;
+    color: var(--text);
+    transition: background 0.1s;
+    display: flex;
+    align-items: center;
+    gap: rem(8);
+
+    &::before {
+      content: '';
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--text-muted);
+      flex-shrink: 0;
+    }
+
+    &:hover {
+      background: var(--accent-dim);
+    }
+  }
+}
