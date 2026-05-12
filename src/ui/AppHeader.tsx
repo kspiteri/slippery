@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { Sun, Moon, Maximize2, Minimize2 } from 'lucide-react'
+import { Button } from './primitives/Button'
 
 interface Props {
   theme: 'dark' | 'light'
@@ -20,18 +21,17 @@ export function AppHeader({ theme, onToggleTheme, onToggleLang, focusMode, onTog
       </div>
       <div className="header-actions">
         {canFocus && onToggleFocus && (
-          <button
-            className="focus-btn"
+          <Button
             onClick={onToggleFocus}
             aria-label={focusMode ? t('header.exitFocus') : t('header.enterFocus')}
           >
             {focusMode ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
-          </button>
+          </Button>
         )}
-        <button className="lang-btn" onClick={onToggleLang}>{t('header.toggleLang')}</button>
-        <button className="theme-btn" onClick={onToggleTheme} aria-label={t('header.toggleTheme')}>
+        <Button onClick={onToggleLang}>{t('header.toggleLang')}</Button>
+        <Button onClick={onToggleTheme} aria-label={t('header.toggleTheme')}>
           {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
-        </button>
+        </Button>
       </div>
     </header>
   )

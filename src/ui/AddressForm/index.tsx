@@ -5,6 +5,7 @@ import { loadAddresses, saveAddress, clearAddress, saveWaypoints } from '../../s
 import { geocodeReverse, type RouteResult, type GeocodeSuggestion } from '../../api/ors'
 import { RouteMap } from '../RouteMap'
 import { parseGeoFile } from '../../logic/parseGeoFile'
+import { Button } from '../primitives/Button'
 import {
   AddressField, WaypointField, CheckRouteButton,
   resolvedWaypoints, getNextId,
@@ -210,10 +211,10 @@ export function AddressForm({ onFetchRoute, onConfirm, onAddressChange, routePre
         ))}
 
         <div className="waypoint-add-row">
-          <button type="button" className="waypoint-add-btn" onClick={addWaypoint}>
+          <Button onClick={addWaypoint}>
             <Plus size={12} />
             {t('form.addWaypoint')}
-          </button>
+          </Button>
         </div>
 
         <AddressField
@@ -239,24 +240,24 @@ export function AddressForm({ onFetchRoute, onConfirm, onAddressChange, routePre
               if (e.key === 'Escape') handleSaveCancel()
             }}
           />
-          <button type="button" className="save-route-confirm" onClick={handleSaveConfirm} disabled={!routeName.trim()}>
+          <Button variant="primary" onClick={handleSaveConfirm} disabled={!routeName.trim()}>
             {t('savedRoutes.confirm')}
-          </button>
-          <button type="button" className="save-route-cancel" onClick={handleSaveCancel}>
+          </Button>
+          <Button variant="cancel" onClick={handleSaveCancel} aria-label={t('savedRoutes.cancel')}>
             <X size={12} />
-          </button>
+          </Button>
           {saveError && <span className="save-route-error">{saveError}</span>}
         </div>
       )}
 
       <div className="form-actions">
-        <button type="button" className="swap-btn" onClick={handleSwap} aria-label={t('form.swap')} title={t('form.swap')}>
+        <Button onClick={handleSwap} aria-label={t('form.swap')} title={t('form.swap')}>
           <ArrowUpDown size={14} />
-        </button>
+        </Button>
         {canSave && onSaveRoute && !savingRoute && (
-          <button type="button" className="save-route-btn" onClick={handleSaveClick} title={t('savedRoutes.save')}>
+          <Button onClick={handleSaveClick} title={t('savedRoutes.save')} aria-label={t('savedRoutes.save')}>
             <Bookmark size={14} />
-          </button>
+          </Button>
         )}
         {onImportRoute && (
           <input
@@ -268,14 +269,13 @@ export function AddressForm({ onFetchRoute, onConfirm, onAddressChange, routePre
           />
         )}
         {onImportRoute && (
-          <button
-            type="button"
-            className="save-route-btn"
+          <Button
             onClick={() => importInputRef.current?.click()}
             title={t('form.importRoute')}
+            aria-label={t('form.importRoute')}
           >
             <Upload size={14} />
-          </button>
+          </Button>
         )}
         <CheckRouteButton loading={loading} canCheck={canCheck} cooldownUntil={cooldownUntil} hasPreview={routePreview !== null} />
       </div>
@@ -287,14 +287,13 @@ export function AddressForm({ onFetchRoute, onConfirm, onAddressChange, routePre
             <span>{Math.round(routePreview.durationMin)} min</span>
           </div>
           <RouteMap coordinates={routePreview.coordinates} segments={routePreview.segments} onMapClick={handleMapClick} />
-          <button
-            type="button"
-            className="route-preview-confirm"
+          <Button
+            variant="primary"
             onClick={() => onConfirm(resolvedWaypoints(waypoints, waypointsRef.current))}
           >
             <ArrowRight size={14} />
             {t('form.confirmConditions')}
-          </button>
+          </Button>
         </div>
       )}
     </form>

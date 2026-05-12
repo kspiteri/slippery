@@ -17,6 +17,7 @@ import { AddressForm, type Waypoint } from './ui/AddressForm'
 import { Verdict } from './ui/Verdict'
 import { AppHeader } from './ui/AppHeader'
 import { TyrePrompt } from './ui/TyrePrompt'
+import { Button } from './ui/primitives/Button'
 import { SavedRoutesList } from './ui/SavedRoutesList'
 import { AlertTriangle } from 'lucide-react'
 import { withRetry } from './lib/retry'
@@ -324,10 +325,10 @@ export function App() {
             <div className="error-content">
               <strong>{t(`error.${error.source}Failed`)}</strong>
               <p>{error.message}</p>
-              <button type="button" className="retry-btn" onClick={handleRetry}>
+              <Button onClick={handleRetry}>
                 <RefreshCw size={13} />
                 {t('error.tryAgain')}
-              </button>
+              </Button>
             </div>
           </div>
         )}

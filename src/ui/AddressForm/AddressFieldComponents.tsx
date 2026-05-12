@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { MapPin, X, ArrowRight, LocateFixed, GripVertical } from 'lucide-react'
 import { saveAddress, type SavedAddress } from '../../state'
 import { geocodeReverse, isWithinNorway, type GeocodeSuggestion } from '../../api/ors'
+import { Button } from '../primitives/Button'
 import { useAddressField, useWaypointField } from './useGeocodeField'
 
 export interface Waypoint {
@@ -165,9 +166,9 @@ export function WaypointField({
       <div className="waypoint-label-row">
         <span className="waypoint-drag-handle"><GripVertical size={13} /></span>
         <span className="field-label">{t('form.via')}</span>
-        <button type="button" className="waypoint-remove-btn" aria-label={t('form.removeWaypoint')} onClick={() => onRemove(id)}>
+        <Button variant="cancel" aria-label={t('form.removeWaypoint')} onClick={() => onRemove(id)}>
           <X size={11} />
-        </button>
+        </Button>
       </div>
       <div className={`input-wrap${outOfBounds ? ' input-wrap--error' : ''}`}>
         <span className="input-icon"><MapPin size={14} /></span>
@@ -226,7 +227,7 @@ export function CheckRouteButton({
   }, [onCooldown])
 
   return (
-    <button type="submit" id="go-btn" disabled={loading || !canCheck || onCooldown}>
+    <Button type="submit" variant="primary" disabled={loading || !canCheck || onCooldown}>
       <ArrowRight size={15} />
       {loading
         ? t('form.checking')
@@ -235,6 +236,6 @@ export function CheckRouteButton({
           : hasPreview
             ? t('form.refetchRoute')
             : t('form.checkRoute')}
-    </button>
+    </Button>
   )
 }

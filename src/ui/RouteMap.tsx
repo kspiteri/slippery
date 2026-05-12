@@ -6,6 +6,7 @@ import 'leaflet/dist/leaflet.css'
 import type { RouteSegment } from '../api/ors'
 import { geocodeReverse } from '../api/ors'
 import { surfaceColour, SURFACE_COLOURS } from '../logic/surfaces'
+import { Button } from './primitives/Button'
 
 // Set VITE_SURFACE_PREVIEW=true in .env.local to render one segment per surface bucket for colour testing
 const DEV_SURFACE_PREVIEW = import.meta.env.VITE_SURFACE_PREVIEW === 'true'
@@ -154,32 +155,28 @@ export function RouteMap({ coordinates, segments, onMapClick }: Props) {
       <div ref={containerRef} className={`route-map${addingWaypoint ? ' route-map--clickable' : ''}${clicking ? ' route-map--clicking' : ''}`} />
       <div className="map-controls">
         {onMapClick && (
-          <button
-            type="button"
-            className={`map-layer-btn${addingWaypoint ? ' active' : ''}`}
+          <Button
+            className={addingWaypoint ? 'active' : undefined}
             onClick={() => setAddingWaypoint((v) => !v)}
             title={addingWaypoint ? 'Cancel adding waypoint' : 'Click map to add waypoint'}
           >
             + via
-          </button>
+          </Button>
         )}
-        <button
-          type="button"
-          className="map-layer-btn"
+        <Button
           onClick={() => setTileKey(nextKey)}
           title={`Switch to ${TILES[nextKey].label} map`}
         >
           {TILES[tileKey].label}
-        </button>
-        <button
-          type="button"
-          className={`map-layer-btn map-disclaimer-toggle${showDisclaimer ? ' active' : ''}`}
+        </Button>
+        <Button
+          className={showDisclaimer ? 'active' : undefined}
           onClick={() => setShowDisclaimer((v) => !v)}
           aria-expanded={showDisclaimer}
           aria-label={t('verdict.mapDisclaimer')}
         >
           <Info size={12} />
-        </button>
+        </Button>
       </div>
       {showDisclaimer && (
         <div className="map-disclaimer" role="note">
