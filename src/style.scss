@@ -313,28 +313,6 @@ main {
   }
 }
 
-.profile-tabs {
-  display: flex;
-  gap: rem(2);
-  margin-bottom: rem(6);
-}
-
-.profile-tab {
-  background: none;
-  border: none;
-  border-bottom: 2px solid transparent;
-  color: var(--text-muted);
-  cursor: pointer;
-  font-family: inherit;
-  font-size: rem(11);
-  padding: rem(2) rem(10) rem(4);
-
-  &.active {
-    border-bottom-color: var(--accent);
-    color: var(--text);
-  }
-}
-
 .route-map-wrap {
   position: relative;
 }
@@ -383,33 +361,6 @@ main {
 
 [data-theme="dark"] .route-map .leaflet-tile {
   filter: brightness(0.7) saturate(0.5);
-}
-
-.verdict-tabs {
-  display: flex;
-  border-bottom: 1px solid var(--border);
-}
-
-.verdict-tab {
-  flex: 1;
-  background: none;
-  border: none;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -1px;
-  padding: rem(8) 0;
-  font-family: var(--font-mono);
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  cursor: pointer;
-  transition: color 0.15s, border-color 0.15s;
-
-  &:hover { color: var(--text); }
-
-  &.active {
-    color: var(--accent);
-    border-bottom-color: var(--accent);
-  }
 }
 
 .verdict-summary {
@@ -478,35 +429,6 @@ main {
   &:first-child { margin-top: 0; }
 
   .verdict-section-label { margin-top: 0; }
-}
-
-.tyre-toggle {
-  display: inline-flex;
-  background: color-mix(in srgb, var(--text) 6%, transparent);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: rem(2);
-}
-
-.tyre-toggle-btn {
-  appearance: none;
-  border: none;
-  background: transparent;
-  color: var(--text-muted);
-  font: inherit;
-  font-size: 0.7rem;
-  font-weight: 600;
-  padding: rem(4) rem(10);
-  border-radius: 999px;
-  cursor: pointer;
-  transition: background-color 0.15s, color 0.15s;
-
-  &:hover:not(.active) { color: var(--text); }
-
-  &.active {
-    background: var(--accent);
-    color: var(--bg);
-  }
 }
 
 .tyre-prompt {

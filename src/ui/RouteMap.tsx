@@ -7,6 +7,7 @@ import type { RouteSegment } from '../api/ors'
 import { geocodeReverse } from '../api/ors'
 import { surfaceColour, SURFACE_COLOURS } from '../logic/surfaces'
 import { Button } from './primitives/Button'
+import { SegmentedToggle } from './primitives/SegmentedToggle'
 
 // Set VITE_SURFACE_PREVIEW=true in .env.local to render one segment per surface bucket for colour testing
 const DEV_SURFACE_PREVIEW = import.meta.env.VITE_SURFACE_PREVIEW === 'true'
@@ -148,8 +149,6 @@ export function RouteMap({ coordinates, segments, onMapClick }: Props) {
     }
   }, [coordinates, segments, tileKey])
 
-  const nextKey: TileKey = tileKey === 'cyclosm' ? 'osm' : 'cyclosm'
-
   return (
     <div className="route-map-wrap">
       <div ref={containerRef} className={`route-map${addingWaypoint ? ' route-map--clickable' : ''}${clicking ? ' route-map--clicking' : ''}`} />
@@ -163,12 +162,15 @@ export function RouteMap({ coordinates, segments, onMapClick }: Props) {
             + via
           </Button>
         )}
-        <Button
-          onClick={() => setTileKey(nextKey)}
-          title={`Switch to ${TILES[nextKey].label} map`}
-        >
-          {TILES[tileKey].label}
-        </Button>
+        <SegmentedToggle<TileKey>
+          value={tileKey}
+          onChange={setTileKey}
+          options={[
+            { value: 'cyclosm', label: TILES.cyclosm.label },
+            { value: 'osm', label: TILES.osm.label },
+          ]}
+          ariaLabel="Map tile layer"
+        />
         <Button
           className={showDisclaimer ? 'active' : undefined}
           onClick={() => setShowDisclaimer((v) => !v)}

@@ -1,0 +1,52 @@
+@use '../../../styles/tokens' as *;
+
+.tabs {
+  display: flex;
+}
+
+.tabs--compact {
+  gap: rem(2);
+  margin-bottom: rem(6);
+}
+
+.tabs--full {
+  border-bottom: 1px solid var(--border);
+}
+
+.tab {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: inherit;
+  transition: color 0.15s, border-color 0.15s;
+
+  &:hover:not(.active) { color: var(--text); }
+
+  &.active {
+    color: var(--text);
+    border-bottom-color: var(--accent);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
+.tab--compact {
+  font-size: rem(11);
+  padding: rem(2) rem(10) rem(4);
+}
+
+.tab--full {
+  flex: 1;
+  margin-bottom: -1px;
+  padding: rem(8) 0;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 600;
+
+  &.active { color: var(--accent); }
+}

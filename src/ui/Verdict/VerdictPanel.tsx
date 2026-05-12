@@ -7,6 +7,7 @@ import type { SlippinessResult, RiskLevel } from '../../logic/slipperiness'
 import type { RouteState } from '../../App'
 import type { TyrePref } from '../../state'
 import { SURFACE_BUCKETS, SURFACE_COLOURS, type SurfaceBucket } from '../../logic/surfaces'
+import { SegmentedToggle } from '../primitives/SegmentedToggle'
 import { HowScored } from './HowScored'
 
 const RISK_COLOURS: Record<RiskLevel, string> = {
@@ -155,23 +156,16 @@ export function VerdictPanel({
 
       <div className="verdict-body">
         <div className="verdict-section-row">
-          <span className="verdict-section-label">{t('verdict.roadConditions')}</span>
-          <div className="tyre-toggle" role="group" aria-label={t('verdict.tyreToggleAria')}>
-            <button
-              type="button"
-              className={`tyre-toggle-btn${tyrePref === 'normal' ? ' active' : ''}`}
-              onClick={() => onChangeTyrePref('normal')}
-            >
-              {t('verdict.normalTyres')}
-            </button>
-            <button
-              type="button"
-              className={`tyre-toggle-btn${tyrePref === 'studded' ? ' active' : ''}`}
-              onClick={() => onChangeTyrePref('studded')}
-            >
-              {t('verdict.studdedTyres')}
-            </button>
-          </div>
+          <span className="verdict-section-label">{t('verdict.studdedQuestion')}</span>
+          <SegmentedToggle<TyrePref>
+            value={tyrePref}
+            onChange={onChangeTyrePref}
+            options={[
+              { value: 'normal', label: t('verdict.studdedNo') },
+              { value: 'studded', label: t('verdict.studdedYes') },
+            ]}
+            ariaLabel={t('verdict.tyreToggleAria')}
+          />
         </div>
         <div className="tyre-row">
           <StatusBadge risk={tyrePref === 'studded' ? slipperiness.studdedRisk : slipperiness.normalRisk} />

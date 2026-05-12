@@ -7,6 +7,7 @@ import type { TyrePref } from '../../state'
 import { surfaceColour } from '../../logic/surfaces'
 import { ElevationProfile } from './ElevationProfile'
 import { RouteMap } from '../RouteMap'
+import { Tabs } from '../primitives/Tabs'
 import { VerdictPanel, SurfaceBar, StatusBadge } from './VerdictPanel'
 
 interface Props {
@@ -72,10 +73,15 @@ export function Verdict({ now, plus2h, plus8h, lastCheckedAt, coordinates, segme
     <div className="card verdict-card">
       {routeBar}
 
-      <div className="profile-tabs">
-        <button type="button" className={`profile-tab${profileTab === 'elevation' ? ' active' : ''}`} onClick={() => setProfileTab('elevation')}>{t('verdict.tabElevation')}</button>
-        <button type="button" className={`profile-tab${profileTab === 'map' ? ' active' : ''}`} onClick={() => setProfileTab('map')}>{t('verdict.tabMap')}</button>
-      </div>
+      <Tabs<'elevation' | 'map'>
+        value={profileTab}
+        onChange={setProfileTab}
+        options={[
+          { value: 'elevation', label: t('verdict.tabElevation') },
+          { value: 'map', label: t('verdict.tabMap') },
+        ]}
+        variant="compact"
+      />
       {profileTab === 'elevation'
         ? <ElevationProfile coordinates={coordinates} showSampleMarkers={multiPoint} color={surfaceColour(now.dominantSurface)} />
         : <RouteMap coordinates={coordinates} segments={segments} />
@@ -83,11 +89,16 @@ export function Verdict({ now, plus2h, plus8h, lastCheckedAt, coordinates, segme
 
       <SurfaceBar counts={now.surfaceCounts} />
 
-      <div className="verdict-tabs">
-        <button type="button" className={`verdict-tab${tab === 'now' ? ' active' : ''}`} onClick={() => setTab('now')}>{t('verdict.tabNow')}</button>
-        <button type="button" className={`verdict-tab${tab === 'plus2h' ? ' active' : ''}`} onClick={() => setTab('plus2h')}>{t('verdict.tabPlus2h')}</button>
-        <button type="button" className={`verdict-tab${tab === 'plus8h' ? ' active' : ''}`} onClick={() => setTab('plus8h')}>{t('verdict.tabPlus8h')}</button>
-      </div>
+      <Tabs<Tab>
+        value={tab}
+        onChange={setTab}
+        options={[
+          { value: 'now', label: t('verdict.tabNow') },
+          { value: 'plus2h', label: t('verdict.tabPlus2h') },
+          { value: 'plus8h', label: t('verdict.tabPlus8h') },
+        ]}
+        variant="full"
+      />
 
       <VerdictPanel data={active} tab={tab} tyrePref={tyrePref} onChangeTyrePref={onChangeTyrePref} />
     </div>
