@@ -28,12 +28,17 @@
     outline: none;
     color: var(--text);
     font-family: var(--font);
-    font-size: 0.875rem;
-    padding: rem(10) rem(8);
+    font-size: 1rem;
+    padding: rem(12) rem(10);
     min-width: 0;
 
     &::placeholder {
       color: var(--text-muted);
+    }
+
+    @media (max-width: 600px) {
+      font-size: 16px;
+      padding: rem(14) rem(12);
     }
   }
 }

@@ -14,6 +14,8 @@
 .fields {
   display: flex;
   flex-direction: column;
+
+  @media (max-width: 600px) { gap: rem(6); }
 }
 
 .field {
@@ -21,6 +23,8 @@
   flex-direction: column;
   gap: rem(4);
   position: relative;
+
+  @media (max-width: 600px) { gap: rem(6); }
 }
 
 .waypoint-add-row {

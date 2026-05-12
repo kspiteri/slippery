@@ -26,7 +26,6 @@ export function AppHeader({
     <header className="app-header">
       <div className="header-title">
         <h1>slippery</h1>
-        <p className="subtitle">{t('app.subtitle')}</p>
       </div>
       <div className="header-actions">
         {canFocus && onToggleFocus && (

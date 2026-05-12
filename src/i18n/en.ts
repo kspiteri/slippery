@@ -1,6 +1,5 @@
 const en = {
   app: {
-    subtitle: 'bergen bike conditions',
     loading: 'fetching route & conditions…',
   },
   header: {

@@ -2,7 +2,6 @@ import type { Translations } from './en'
 
 const no: Translations = {
   app: {
-    subtitle: 'sykkelforhold i bergen',
     loading: 'henter rute og forhold…',
   },
   header: {
