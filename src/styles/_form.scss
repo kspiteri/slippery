@@ -1,0 +1,117 @@
+@use 'tokens' as *;
+
+#route-form {
+  padding: rem(20);
+  display: flex;
+  flex-direction: column;
+  gap: rem(12);
+  position: relative;
+  z-index: 2;
+
+  @media (min-width: 900px) { padding: rem(24); }
+}
+
+.fields {
+  display: flex;
+  flex-direction: column;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: rem(4);
+  position: relative;
+}
+
+.waypoint-add-row {
+  display: flex;
+  padding: rem(2) 0;
+}
+
+.waypoint-field {
+  padding: rem(8) 0 rem(8) rem(4);
+  border-left: 2px solid var(--border);
+  transition: border-color 0.15s, opacity 0.15s;
+
+  &.dragging { opacity: 0.4; }
+  &.drag-over { border-left-color: var(--accent); }
+
+  &:hover .waypoint-drag-handle { opacity: 1; }
+}
+
+.waypoint-drag-handle {
+  color: var(--text-muted);
+  cursor: grab;
+  display: flex;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 0.15s;
+  margin-right: rem(2);
+}
+
+.waypoint-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.field-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  padding-left: rem(2);
+}
+
+.spinner {
+  width: rem(16);
+  height: rem(16);
+  border-width: 2px;
+  border-style: solid;
+  border-color: var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  display: inline-block;
+}
+
+.form-actions {
+  display: flex;
+  align-items: center;
+  gap: rem(8);
+
+  [type="submit"] { flex: 1; }
+}
+
+.route-preview {
+  display: flex;
+  flex-direction: column;
+  gap: rem(10);
+  margin-top: rem(4);
+
+  .route-preview-stats {
+    display: flex;
+    gap: rem(12);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .route-map-wrap .route-map {
+    height: rem(200);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    margin-bottom: 0;
+  }
+}
+
+.loading-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: rem(10);
+  padding: rem(20);
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}

@@ -1,0 +1,45 @@
+@use 'tokens' as *;
+
+.elevation-profile {
+  padding: rem(12) rem(16);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: rem(6);
+}
+
+.elevation-svg {
+  width: 100%;
+  height: rem(64);
+  display: block;
+  overflow: visible;
+}
+
+.elevation-line {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.elevation-fill {
+  fill: color-mix(in srgb, var(--accent) 14%, transparent);
+  stroke: none;
+}
+
+.elevation-marker {
+  fill: var(--bg);
+  stroke: var(--accent);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.elevation-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}

@@ -1,0 +1,108 @@
+@use 'tokens' as *;
+
+#app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: rem(16);
+
+  @media (min-width: 600px) { padding: rem(24); }
+  @media (min-width: 900px) { padding: rem(32); }
+  @media (max-width: 380px) { padding: rem(12); }
+}
+
+.app-header {
+  width: 100%;
+  max-width: rem(480);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: rem(40);
+
+  @media (min-width: 600px) { max-width: rem(520); }
+  @media (min-width: 900px) { max-width: rem(560); }
+}
+
+.header-title {
+  h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    font-family: var(--font-mono);
+
+    @media (max-width: 380px) { font-size: 1.4rem; }
+  }
+
+  .subtitle {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    margin-top: rem(2);
+    font-family: var(--font-mono);
+  }
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: rem(6);
+  flex-shrink: 0;
+}
+
+main {
+  width: 100%;
+  max-width: rem(480);
+  display: flex;
+  flex-direction: column;
+  gap: rem(16);
+
+  @media (min-width: 600px) { max-width: rem(520); }
+  @media (min-width: 900px) { max-width: rem(560); }
+}
+
+.card {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  backdrop-filter: blur(16px);
+  box-shadow: var(--shadow);
+}
+
+.app-footer {
+  width: 100%;
+  max-width: rem(480);
+  margin-top: rem(32);
+  padding-bottom: rem(16);
+  display: flex;
+  justify-content: center;
+}
+
+.clear-data-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  padding: rem(6) rem(10);
+  border-radius: var(--radius-sm);
+  transition: color 0.15s, background 0.15s;
+  opacity: 0.6;
+
+  &:hover {
+    opacity: 1;
+    color: var(--text);
+  }
+
+  &--confirm {
+    opacity: 1;
+    color: var(--error);
+    background: color-mix(in srgb, var(--error) 10%, transparent);
+
+    &:hover {
+      color: var(--error);
+      background: color-mix(in srgb, var(--error) 18%, transparent);
+    }
+  }
+}

@@ -1,0 +1,39 @@
+@use 'tokens' as *;
+
+.error-box {
+  border-color: color-mix(in srgb, var(--error) 35%, transparent);
+  overflow: hidden;
+  animation: fadeUp 0.3s ease;
+  display: flex;
+  align-items: flex-start;
+  gap: rem(12);
+  padding: rem(16);
+  color: var(--text);
+
+  > svg {
+    color: var(--error);
+    flex-shrink: 0;
+    margin-top: rem(2);
+  }
+}
+
+.error-content {
+  display: flex;
+  flex-direction: column;
+  gap: rem(6);
+  flex: 1;
+  min-width: 0;
+
+  strong {
+    color: var(--error);
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.83rem;
+    color: var(--text-muted);
+    word-break: break-word;
+  }
+}

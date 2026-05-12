@@ -1,0 +1,84 @@
+@use 'tokens' as *;
+
+.saved-routes {
+  padding: rem(14) rem(16);
+  display: flex;
+  flex-direction: column;
+  gap: rem(10);
+  animation: fadeUp 0.2s ease;
+}
+
+.saved-routes-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.saved-routes-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+}
+
+.saved-routes-count {
+  font-size: 0.7rem;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+}
+
+.saved-routes-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: rem(4);
+}
+
+.saved-route-item {
+  display: flex;
+  align-items: center;
+  gap: rem(4);
+}
+
+.saved-route-load {
+  flex: 1;
+  text-align: left;
+
+  svg {
+    color: var(--text-muted);
+    flex-shrink: 0;
+  }
+}
+
+.saved-route-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.saved-route-stale {
+  font-size: 0.68rem;
+  color: var(--alert);
+  font-family: var(--font-mono);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.save-route-row {
+  display: flex;
+  align-items: center;
+  gap: rem(6);
+  flex-wrap: wrap;
+}
+
+.save-route-name-input {
+  flex: 1;
+}
+
+.save-route-error {
+  width: 100%;
+  font-size: 0.75rem;
+  color: var(--error);
+}
