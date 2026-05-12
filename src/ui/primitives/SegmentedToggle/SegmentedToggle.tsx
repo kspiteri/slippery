@@ -1,10 +1,10 @@
 import type { ReactNode } from 'react'
 import styles from './SegmentedToggle.module.scss'
+import { cx } from '../cx'
 
 export interface SegmentedToggleOption<T extends string> {
   value: T
   label: ReactNode
-  title?: string
 }
 
 interface Props<T extends string> {
@@ -18,18 +18,16 @@ interface Props<T extends string> {
 export function SegmentedToggle<T extends string>({
   value, onChange, options, ariaLabel, className,
 }: Props<T>) {
-  const groupClass = [styles.group, className].filter(Boolean).join(' ')
   return (
-    <div className={groupClass} role="group" aria-label={ariaLabel}>
+    <div className={cx(styles.group, className)} role="group" aria-label={ariaLabel}>
       {options.map((opt) => {
         const active = opt.value === value
         return (
           <button
             key={opt.value}
             type="button"
-            className={`${styles.option}${active ? ` ${styles.active}` : ''}`}
+            className={cx(styles.option, active && styles.active)}
             onClick={() => onChange(opt.value)}
-            title={opt.title}
             aria-pressed={active}
           >
             {opt.label}

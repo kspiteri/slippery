@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import styles from './Tabs.module.scss'
+import { cx } from '../cx'
 
 export interface TabOption<T extends string> {
   value: T
@@ -11,35 +12,22 @@ interface Props<T extends string> {
   onChange: (value: T) => void
   options: TabOption<T>[]
   variant?: 'compact' | 'full'
-  ariaLabel?: string
   className?: string
 }
 
 export function Tabs<T extends string>({
-  value, onChange, options, variant = 'compact', ariaLabel, className,
+  value, onChange, options, variant = 'compact', className,
 }: Props<T>) {
-  const tabsClass = [
-    styles.tabs,
-    styles[`tabs--${variant}`],
-    className,
-  ].filter(Boolean).join(' ')
-
   return (
-    <div className={tabsClass} role="tablist" aria-label={ariaLabel}>
+    <div className={cx(styles.tabs, styles[`tabs--${variant}`], className)} role="group">
       {options.map((opt) => {
         const active = opt.value === value
-        const tabClass = [
-          styles.tab,
-          styles[`tab--${variant}`],
-          active && styles.active,
-        ].filter(Boolean).join(' ')
         return (
           <button
             key={opt.value}
             type="button"
-            role="tab"
-            aria-selected={active}
-            className={tabClass}
+            aria-pressed={active}
+            className={cx(styles.tab, styles[`tab--${variant}`], active && styles.active)}
             onClick={() => onChange(opt.value)}
           >
             {opt.label}

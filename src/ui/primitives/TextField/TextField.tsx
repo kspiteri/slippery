@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode, type Ref, type InputHTMLAttributes } from 'react'
 import styles from './TextField.module.scss'
+import { cx } from '../cx'
 
 interface Props<T> extends Omit<InputHTMLAttributes<HTMLInputElement>, 'onChange'> {
   value: string
@@ -65,14 +66,14 @@ export function TextField<T>({
     try { await onLocate() } finally { setLocating(false) }
   }
 
-  const inputClass = [
+  const inputClass = cx(
     styles.input,
     error && styles['input--error'],
     alwaysFocused && styles['input--focused'],
-  ].filter(Boolean).join(' ')
+  )
 
   return (
-    <div className={[styles.wrap, wrapClassName].filter(Boolean).join(' ')} ref={wrapRef}>
+    <div className={cx(styles.wrap, wrapClassName)} ref={wrapRef}>
       <div className={inputClass}>
         {icon && <span className={styles.icon}>{icon}</span>}
         <input
