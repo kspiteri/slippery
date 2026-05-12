@@ -6,6 +6,7 @@ import { geocodeReverse, type RouteResult, type GeocodeSuggestion } from '../../
 import { RouteMap } from '../RouteMap'
 import { parseGeoFile } from '../../logic/parseGeoFile'
 import { Button } from '../primitives/Button'
+import { TextField } from '../primitives/TextField'
 import {
   AddressField, WaypointField, CheckRouteButton,
   resolvedWaypoints, getNextId,
@@ -228,13 +229,14 @@ export function AddressForm({ onFetchRoute, onConfirm, onAddressChange, routePre
 
       {savingRoute && (
         <div className="save-route-row">
-          <input
-            ref={nameInputRef}
+          <TextField
+            inputRef={nameInputRef}
+            wrapClassName="save-route-name-input"
             type="text"
-            className="save-route-input"
             placeholder={t('savedRoutes.namePlaceholder')}
             value={routeName}
-            onChange={(e) => setRouteName(e.target.value)}
+            onValueChange={setRouteName}
+            alwaysFocused
             onKeyDown={(e) => {
               if (e.key === 'Enter') { e.preventDefault(); handleSaveConfirm() }
               if (e.key === 'Escape') handleSaveCancel()

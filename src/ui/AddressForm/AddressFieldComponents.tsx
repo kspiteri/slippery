@@ -1,9 +1,10 @@
-import { useRef, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { MapPin, X, ArrowRight, LocateFixed, GripVertical } from 'lucide-react'
 import { saveAddress, type SavedAddress } from '../../state'
 import { geocodeReverse, isWithinNorway, type GeocodeSuggestion } from '../../api/ors'
 import { Button } from '../primitives/Button'
+import { TextField } from '../primitives/TextField'
 import { useAddressField, useWaypointField } from './useGeocodeField'
 
 export interface Waypoint {
@@ -40,82 +41,52 @@ export function AddressField({
   const { t } = useTranslation()
   const { value, setValue, suggestions, open, outOfBounds, handleInput, handleSelect, handleClear, setOpen } =
     useAddressField(field, onSaved, overrideValue)
-  const wrapRef = useRef<HTMLDivElement>(null)
-  const [locating, setLocating] = useState(false)
-
-  useEffect(() => {
-    function onClickOutside(e: MouseEvent) {
-      if (!wrapRef.current?.contains(e.target as Node)) setOpen(false)
-    }
-    document.addEventListener('mousedown', onClickOutside)
-    return () => document.removeEventListener('mousedown', onClickOutside)
-  }, [setOpen])
 
   const handleLocate = async () => {
     if (!navigator.geolocation) return
-    setLocating(true)
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        try {
-          if (!isWithinNorway(pos.coords.latitude, pos.coords.longitude)) {
-            setLocating(false)
-            return
-          }
-          const result = await geocodeReverse(pos.coords.latitude, pos.coords.longitude)
-          if (result) {
-            setValue(result.label)
-            saveAddress(field, { label: result.label, lat: result.lat, lng: result.lng })
-            onSaved()
-          }
-        } finally {
-          setLocating(false)
-        }
-      },
-      () => setLocating(false),
-      { timeout: 8000 },
-    )
+    await new Promise<void>((resolve) => {
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          try {
+            if (!isWithinNorway(pos.coords.latitude, pos.coords.longitude)) return resolve()
+            const result = await geocodeReverse(pos.coords.latitude, pos.coords.longitude)
+            if (result) {
+              setValue(result.label)
+              saveAddress(field, { label: result.label, lat: result.lat, lng: result.lng })
+              onSaved()
+            }
+          } finally { resolve() }
+        },
+        () => resolve(),
+        { timeout: 8000 },
+      )
+    })
   }
 
   return (
-    <div className="field" ref={wrapRef}>
+    <div className="field">
       <span className="field-label">{label}</span>
-      <div className={`input-wrap${outOfBounds ? ' input-wrap--error' : ''}`}>
-        <span className="input-icon"><MapPin size={14} /></span>
-        <input
-          type="text"
-          autoComplete="off"
-          placeholder={placeholder}
-          value={value}
-          onChange={(e) => handleInput(e.target.value)}
-          onKeyDown={(e) => e.key === 'Escape' && setOpen(false)}
-        />
-        {showLocate && (
-          <button
-            type="button"
-            className={`locate-btn${locating ? ' locating' : ''}`}
-            aria-label={t('form.useLocation')}
-            onClick={handleLocate}
-            disabled={locating}
-          >
-            {locating ? <span className="locate-spinner" /> : <LocateFixed size={13} />}
-          </button>
-        )}
-        {value && (
-          <button type="button" className="clear-btn" aria-label={t('form.clear')} onClick={handleClear}>
-            <X size={13} />
-          </button>
-        )}
-      </div>
-      {outOfBounds && <span className="field-error">{t('error.outsideNorway')}</span>}
-      {open && (
-        <ul className="suggestions">
-          {suggestions.map((s) => (
-            <li key={`${s.lat},${s.lng}`} onMouseDown={(e) => { e.preventDefault(); handleSelect(s) }}>
-              {s.label}
-            </li>
-          ))}
-        </ul>
-      )}
+      <TextField
+        type="text"
+        autoComplete="off"
+        placeholder={placeholder}
+        value={value}
+        onValueChange={handleInput}
+        icon={<MapPin size={14} />}
+        error={outOfBounds ? t('error.outsideNorway') : undefined}
+        suggestions={suggestions}
+        suggestionsOpen={open}
+        getSuggestionKey={(s) => `${s.lat},${s.lng}`}
+        getSuggestionLabel={(s) => s.label}
+        onSelectSuggestion={handleSelect}
+        onSuggestionsClose={() => setOpen(false)}
+        onLocate={showLocate ? handleLocate : undefined}
+        locateIcon={<LocateFixed size={13} />}
+        locateLabel={t('form.useLocation')}
+        onClear={value ? handleClear : undefined}
+        clearIcon={<X size={13} />}
+        clearLabel={t('form.clear')}
+      />
     </div>
   )
 }
@@ -144,20 +115,10 @@ export function WaypointField({
   const { t } = useTranslation()
   const { value, suggestions, open, outOfBounds, handleInput, handleSelect, setOpen } =
     useWaypointField(initialValue?.label)
-  const wrapRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    function onClickOutside(e: MouseEvent) {
-      if (!wrapRef.current?.contains(e.target as Node)) setOpen(false)
-    }
-    document.addEventListener('mousedown', onClickOutside)
-    return () => document.removeEventListener('mousedown', onClickOutside)
-  }, [setOpen])
 
   return (
     <div
       className={`field waypoint-field${isDragging ? ' dragging' : ''}${isDragOver ? ' drag-over' : ''}`}
-      ref={wrapRef}
       draggable
       onDragStart={onDragStart}
       onDragOver={onDragOver}
@@ -170,34 +131,24 @@ export function WaypointField({
           <X size={11} />
         </Button>
       </div>
-      <div className={`input-wrap${outOfBounds ? ' input-wrap--error' : ''}`}>
-        <span className="input-icon"><MapPin size={14} /></span>
-        <input
-          type="text"
-          autoComplete="off"
-          placeholder={t('form.placeholderWaypoint')}
-          value={value}
-          onChange={(e) => handleInput(e.target.value)}
-          onKeyDown={(e) => e.key === 'Escape' && setOpen(false)}
-        />
-      </div>
-      {outOfBounds && <span className="field-error">{t('error.outsideNorway')}</span>}
-      {open && (
-        <ul className="suggestions">
-          {suggestions.map((s) => (
-            <li
-              key={`${s.lat},${s.lng}`}
-              onMouseDown={(e) => {
-                e.preventDefault()
-                const resolved = handleSelect(s)
-                if (resolved) onResolved(id, resolved)
-              }}
-            >
-              {s.label}
-            </li>
-          ))}
-        </ul>
-      )}
+      <TextField
+        type="text"
+        autoComplete="off"
+        placeholder={t('form.placeholderWaypoint')}
+        value={value}
+        onValueChange={handleInput}
+        icon={<MapPin size={14} />}
+        error={outOfBounds ? t('error.outsideNorway') : undefined}
+        suggestions={suggestions}
+        suggestionsOpen={open}
+        getSuggestionKey={(s) => `${s.lat},${s.lng}`}
+        getSuggestionLabel={(s) => s.label}
+        onSelectSuggestion={(s) => {
+          const resolved = handleSelect(s)
+          if (resolved) onResolved(id, resolved)
+        }}
+        onSuggestionsClose={() => setOpen(false)}
+      />
     </div>
   )
 }
