@@ -19,13 +19,16 @@
   border-bottom: 2px solid transparent;
   color: var(--text-muted);
   cursor: pointer;
-  font-family: inherit;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: rem(8) rem(10);
   transition: color 0.15s, border-color 0.15s;
 
   &:hover:not(.active) { color: var(--text); }
 
   &.active {
-    color: var(--text);
+    color: var(--accent);
     border-bottom-color: var(--accent);
   }
 
@@ -35,18 +38,9 @@
   }
 }
 
-.tab--compact {
-  font-size: rem(11);
-  padding: rem(2) rem(10) rem(4);
-}
-
 .tab--full {
   flex: 1;
   margin-bottom: -1px;
-  padding: rem(8) 0;
-  font-family: var(--font-mono);
-  font-size: 0.78rem;
-  font-weight: 600;
-
-  &.active { color: var(--accent); }
+  padding-left: 0;
+  padding-right: 0;
 }
