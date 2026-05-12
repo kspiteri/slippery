@@ -119,3 +119,24 @@
   color: var(--text-muted);
   font-size: 0.85rem;
 }
+
+.import-route-link {
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: rem(6);
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.78rem;
+  padding: rem(4) rem(8);
+  border-radius: var(--radius-sm);
+  transition: color 0.15s, background 0.15s;
+
+  &:hover {
+    color: var(--accent);
+    background: var(--accent-dim);
+  }
+}

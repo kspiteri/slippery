@@ -80,6 +80,12 @@ const no: Translations = {
     high: 'Høy risiko',
     dont_ride: 'Ikke sykle',
   },
+  headline: {
+    clear: 'Veiene ser fine ut — bare å sykle.',
+    caution: 'Blandede forhold — sykle forsiktig.',
+    high: 'Glatt der ute — vær veldig forsiktig.',
+    dont_ride: 'Forholdene er farlige — drop turen.',
+  },
   jacket: {
     yes: 'Ta med jakke',
     maybe: 'Kanskje jakke',

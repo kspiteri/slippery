@@ -78,6 +78,12 @@ const en = {
     high: 'High risk',
     dont_ride: "Don't ride",
   },
+  headline: {
+    clear: 'Roads look good — ride on.',
+    caution: 'Mixed conditions — ride carefully.',
+    high: 'Slippery out there — proceed with caution.',
+    dont_ride: 'Conditions are dangerous — better skip the ride.',
+  },
   jacket: {
     yes: 'Bring a jacket',
     maybe: 'Maybe a jacket',

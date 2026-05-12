@@ -8,7 +8,7 @@ import { surfaceColour } from '../../logic/surfaces'
 import { ElevationProfile } from './ElevationProfile'
 import { RouteMap } from '../RouteMap'
 import { Tabs } from '../primitives/Tabs'
-import { VerdictPanel, SurfaceBar, StatusBadge } from './VerdictPanel'
+import { VerdictPanel, SurfaceBar, StatusBadge, VerdictHero } from './VerdictPanel'
 
 interface Props {
   now: RouteState
@@ -72,6 +72,8 @@ export function Verdict({ now, plus2h, plus8h, lastCheckedAt, coordinates, segme
   return (
     <div className="card verdict-card">
       {routeBar}
+
+      <VerdictHero risk={tyrePref === 'studded' ? active.slipperiness.studdedRisk : active.slipperiness.normalRisk} />
 
       <Tabs<'elevation' | 'map'>
         value={profileTab}

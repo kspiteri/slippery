@@ -5,6 +5,35 @@
   animation: fadeUp 0.3s ease;
 }
 
+.verdict-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: rem(8);
+  padding: rem(18) rem(20);
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--hero-color) 9%, transparent);
+
+  .status-badge {
+    font-size: 1.05rem;
+    font-weight: 700;
+    gap: rem(8);
+  }
+
+  .status-dot {
+    width: 10px;
+    height: 10px;
+  }
+}
+
+.verdict-hero-headline {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--text);
+}
+
 .verdict-route-bar {
   padding: rem(10) rem(16);
   border-bottom: 1px solid var(--border);
@@ -99,17 +128,6 @@
   &:first-child { margin-top: 0; }
 
   .verdict-section-label { margin-top: 0; }
-}
-
-.tyre-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: rem(12);
-  padding: rem(10) rem(14);
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border);
-  background: var(--bg-input);
 }
 
 .status-badge {

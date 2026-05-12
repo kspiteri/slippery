@@ -261,7 +261,11 @@ export function AddressForm({ onFetchRoute, onConfirm, onAddressChange, routePre
             <Bookmark size={14} />
           </Button>
         )}
-        {onImportRoute && (
+        <CheckRouteButton loading={loading} canCheck={canCheck} cooldownUntil={cooldownUntil} hasPreview={routePreview !== null} />
+      </div>
+
+      {onImportRoute && (
+        <>
           <input
             ref={importInputRef}
             type="file"
@@ -269,18 +273,16 @@ export function AddressForm({ onFetchRoute, onConfirm, onAddressChange, routePre
             style={{ display: 'none' }}
             onChange={handleImportFile}
           />
-        )}
-        {onImportRoute && (
-          <Button
+          <button
+            type="button"
+            className="import-route-link"
             onClick={() => importInputRef.current?.click()}
-            title={t('form.importRoute')}
-            aria-label={t('form.importRoute')}
           >
-            <Upload size={14} />
-          </Button>
-        )}
-        <CheckRouteButton loading={loading} canCheck={canCheck} cooldownUntil={cooldownUntil} hasPreview={routePreview !== null} />
-      </div>
+            <Upload size={12} />
+            {t('form.importRoute')}
+          </button>
+        </>
+      )}
 
       {routePreview && (
         <div className="route-preview">

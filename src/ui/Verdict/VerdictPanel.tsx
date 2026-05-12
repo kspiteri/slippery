@@ -105,6 +105,24 @@ export function StatusBadge({ risk }: { risk: RiskLevel }) {
   )
 }
 
+const HEADLINE_KEYS: Record<RiskLevel, string> = {
+  'clear': 'headline.clear',
+  'caution': 'headline.caution',
+  'high': 'headline.high',
+  'dont-ride': 'headline.dont_ride',
+}
+
+export function VerdictHero({ risk }: { risk: RiskLevel }) {
+  const { t } = useTranslation()
+  const color = RISK_COLOURS[risk]
+  return (
+    <div className="verdict-hero" style={{ '--hero-color': color } as React.CSSProperties}>
+      <StatusBadge risk={risk} />
+      <p className="verdict-hero-headline">{t(HEADLINE_KEYS[risk])}</p>
+    </div>
+  )
+}
+
 function PrecipIcon({ type }: { type: string }) {
   if (type === 'snow') return <Snowflake size={12} />
   if (type === 'sleet') return <Wind size={12} />
@@ -166,9 +184,6 @@ export function VerdictPanel({
             ]}
             ariaLabel={t('verdict.tyreToggleAria')}
           />
-        </div>
-        <div className="tyre-row">
-          <StatusBadge risk={tyrePref === 'studded' ? slipperiness.studdedRisk : slipperiness.normalRisk} />
         </div>
 
         <div className="verdict-section-label">{t('verdict.gear')}</div>
