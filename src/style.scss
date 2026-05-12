@@ -317,6 +317,10 @@ main {
   position: relative;
 }
 
+.route-map-frame {
+  position: relative;
+}
+
 .route-map {
   height: rem(220);
   border-radius: rem(8);
@@ -332,6 +336,19 @@ main {
   display: flex;
   flex-direction: column;
   gap: rem(4);
+
+  .active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+}
+
+.map-info {
+  position: absolute;
+  bottom: rem(8);
+  left: rem(8);
+  z-index: 1000;
 
   .active {
     background: var(--accent);

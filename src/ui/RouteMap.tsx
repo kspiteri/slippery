@@ -151,34 +151,38 @@ export function RouteMap({ coordinates, segments, onMapClick }: Props) {
 
   return (
     <div className="route-map-wrap">
-      <div ref={containerRef} className={`route-map${addingWaypoint ? ' route-map--clickable' : ''}${clicking ? ' route-map--clicking' : ''}`} />
-      <div className="map-controls">
-        {onMapClick && (
+      <div className="route-map-frame">
+        <div ref={containerRef} className={`route-map${addingWaypoint ? ' route-map--clickable' : ''}${clicking ? ' route-map--clicking' : ''}`} />
+        <div className="map-controls">
+          {onMapClick && (
+            <Button
+              className={addingWaypoint ? 'active' : undefined}
+              onClick={() => setAddingWaypoint((v) => !v)}
+              title={addingWaypoint ? 'Cancel adding waypoint' : 'Click map to add waypoint'}
+            >
+              + via
+            </Button>
+          )}
+          <SegmentedToggle<TileKey>
+            value={tileKey}
+            onChange={setTileKey}
+            options={[
+              { value: 'cyclosm', label: TILES.cyclosm.label },
+              { value: 'osm', label: TILES.osm.label },
+            ]}
+            ariaLabel="Map tile layer"
+          />
+        </div>
+        <div className="map-info">
           <Button
-            className={addingWaypoint ? 'active' : undefined}
-            onClick={() => setAddingWaypoint((v) => !v)}
-            title={addingWaypoint ? 'Cancel adding waypoint' : 'Click map to add waypoint'}
+            className={showDisclaimer ? 'active' : undefined}
+            onClick={() => setShowDisclaimer((v) => !v)}
+            aria-expanded={showDisclaimer}
+            aria-label={t('verdict.mapDisclaimer')}
           >
-            + via
+            <Info size={12} />
           </Button>
-        )}
-        <SegmentedToggle<TileKey>
-          value={tileKey}
-          onChange={setTileKey}
-          options={[
-            { value: 'cyclosm', label: TILES.cyclosm.label },
-            { value: 'osm', label: TILES.osm.label },
-          ]}
-          ariaLabel="Map tile layer"
-        />
-        <Button
-          className={showDisclaimer ? 'active' : undefined}
-          onClick={() => setShowDisclaimer((v) => !v)}
-          aria-expanded={showDisclaimer}
-          aria-label={t('verdict.mapDisclaimer')}
-        >
-          <Info size={12} />
-        </Button>
+        </div>
       </div>
       {showDisclaimer && (
         <div className="map-disclaimer" role="note">
