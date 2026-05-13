@@ -4,17 +4,17 @@ Bergen bike route slipperiness checker — a PWA that tells you whether it's saf
 
 ## What it does
 
-Enter a from/to address (with optional waypoints) and it fetches:
+Enter a from/to address (with optional waypoints) — or import a GPX / GeoJSON / KML track — and it fetches:
 - **Cycling route** via OpenRouteService (with surface type and elevation)
 - **Weather** via MET Norway (overnight low, current temp, precipitation, active alerts)
 
-It scores road slipperiness separately for **normal** and **studded tyres**, gives a **jacket recommendation** based on forecast rain, renders the terrain elevation as an **SVG sparkline**, and draws the route and surrounding terrain as a **block-character ASCII map** in the page background.
+It scores road slipperiness separately for **normal** and **studded tyres**, leads with a colour-coded verdict hero (badge + headline), gives a **jacket recommendation** based on forecast rain, renders the terrain elevation as an **SVG sparkline** with an optional Leaflet **map view**, and draws the route and surrounding terrain as a **block-character ASCII map** in the page background.
 
 For longer routes (>5 km or >100 m elevation gain) it samples weather at three points along the route (¹/₆, ½, and ⁵/₆) and uses the worst-scoring point per time horizon, surfacing which segment drove the verdict.
 
 Results are shown across three time horizons (now / +2h / +8h) and cached in `sessionStorage` for 15 minutes so re-checking the same route doesn't hit the APIs again. Failed requests retry with exponential backoff, and surface a typed error UI with a retry button if they still fail. A 30-second cooldown on the check button discourages hammering the public ORS key, and a "last checked X min ago" indicator shows the freshness of the current result.
 
-Address inputs are restricted to Norway — selecting an out-of-bounds result shows an inline field error. The "from" field auto-fills via GPS on first load. Tyre choice (normal/studded) is remembered across sessions.
+Address inputs are restricted to Norway — selecting an out-of-bounds result shows an inline field error. The "from" field auto-fills via GPS on first load. Up to 5 routes can be saved locally for quick recall. Tyre choice, theme, language, and font scale are remembered across sessions, and a Settings popover exposes theme, language, and A−/A+ font-size controls. A focus mode trims the verdict to just the route bar and risk badge.
 
 ## How it's scored
 
@@ -42,6 +42,9 @@ Surface penalties scale with the share of the route on that surface — a route 
 ## Stack
 
 - Vite 6 + React 19 + TypeScript
+- SCSS (Dart Sass) with a `rem()` helper for px → rem; per-feature partials under `src/styles/`
+- Leaflet for the optional map view
+- i18next for EN / NO translations
 - PWA via `vite-plugin-pwa` (installable, offline-capable)
 - [OpenRouteService](https://openrouteservice.org/) — geocoding + cycling directions
 - [MET Norway Locationforecast 2.0](https://api.met.no/) — weather + MetAlerts

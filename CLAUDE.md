@@ -20,20 +20,28 @@ Requires `VITE_ORS_KEY` in `.env.local` (OpenRouteService API key) to run locall
 
 ### Data flow
 
-1. `AddressForm` collects from/to/waypoints with autocomplete (ORS Geocoding + Nominatim fallback)
+1. `AddressForm` collects from/to/waypoints with autocomplete (ORS Geocoding + Nominatim fallback), or accepts an imported GPX / GeoJSON / KML track
 2. `App.tsx` orchestrates: geocode → fetch route (ORS Directions) → fetch weather (MET Norway) → score
 3. `slipperiness.ts` computes a 0–100+ risk score from temperature, precipitation, surface type, and active MetAlerts
-4. `Verdict` renders results across three time horizons: now / +2h / +8h
+4. `Verdict` renders results across three time horizons: now / +2h / +8h, led by a colour-coded hero badge + headline
 
 ### Key directories
 
 - `src/api/` — ORS (routing + geocoding), MET Norway (forecast + alerts), and elevation grid builder
 - `src/logic/slipperiness.ts` — risk scoring algorithm; score thresholds: 0–25 clear, 26–55 caution, 56–79 high, 80+ don't ride; studded tyres subtract variable points per rule
 - `src/logic/weatherSampling.ts` — multi-point weather sampling (3 points along route for routes >5 km or >100 m elevation gain); `aggregateSnapshots` picks worst-scoring point per horizon; exposes which sample point (`start`/`mid`/`end`) drove the verdict
-- `src/ui/` — `AddressForm`, `Verdict`, `ElevationProfile` (SVG sparkline with sample-point markers), and `ascii.ts` (block-character terrain + route map drawn on a fullscreen canvas background)
-- `src/ui/AddressForm.tsx` — geocodes restricted to Norway; inline field error shown for out-of-bounds addresses; auto-detects GPS location on first load; tyre preference persisted in `localStorage` (`slippery_tyres`)
-- `src/i18n/` — EN/NO translations via i18next; language stored in `localStorage` (`slippery_lang`)
-- `src/state.ts` — from/to/waypoints persisted in `localStorage` (`slippery_addresses`); tyre pref in `slippery_tyres`
+- `src/logic/parseGeoFile.ts` — parses imported GPX / GeoJSON / KML into a coord list
+- `src/ui/AddressForm/` — directory: form orchestration in `index.tsx`, field components in `AddressFieldComponents.tsx`. Geocodes restricted to Norway; inline field error for out-of-bounds; auto-detects GPS on first load; import lives as an inline link below the action row
+- `src/ui/Verdict/` — `index.tsx` (card + tabs), `VerdictPanel.tsx` (hero, status badge, summary, jacket, weather pills, exports `VerdictHero` + `StatusBadge`), `ElevationProfile.tsx` (SVG sparkline with sample-point markers), `HowScored.tsx` (rules table)
+- `src/ui/RouteMap.tsx` — Leaflet map with surface-coloured polyline and an info button anchored bottom-left of the map frame
+- `src/ui/SettingsMenu.tsx` — popover with theme, language, and A−/A+ font-size controls (replaces the old header buttons)
+- `src/ui/SavedRoutesList.tsx` + save UI in AddressForm — up to 5 named routes in `localStorage` (`slippery_saved_routes`)
+- `src/ui/TyrePrompt.tsx` — first-run prompt for normal vs studded
+- `src/ui/primitives/` — `Button`, `TextField`, `Tabs`, `SegmentedToggle` (all SCSS Modules), plus the `cx()` classname helper
+- `src/ui/ascii.ts` — block-character terrain + route map drawn on a fullscreen canvas background
+- `src/styles/` — SCSS partials (`_base`, `_theme`, `_layout`, `_form`, `_map`, `_verdict`, `_error`, `_elevation`, `_surface-bar`, `_how-scored`, `_tyre-prompt`, `_saved-routes`, `_settings-menu`, `_focus-mode`) wired up via the manifest at `src/style.scss`. `_tokens.scss` exposes a `rem()` helper (16-base) — prefer `rem(px)` for spacing/sizing so the font-scale a11y feature scales everything proportionally
+- `src/i18n/` — EN/NO translations via i18next; `en.ts` is the source of truth and `no.ts` is typed against `Translations`; language stored in `localStorage` (`slippery_lang`)
+- `src/state.ts` — `localStorage` keys: `slippery_addresses` (from/to/waypoints), `slippery_tyres`, `slippery_lang`, `slippery_theme`, `slippery_font_scale`, `slippery_saved_routes`. `clearUserData()` wipes them all
 
 ### Deployment
 
