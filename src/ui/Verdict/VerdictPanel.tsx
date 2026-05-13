@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import {
   Thermometer, Droplets, AlertTriangle,
-  Snowflake, Wind, Shirt, CheckCircle, CircleDot,
+  Snowflake, Wind, Shirt, CircleDot,
 } from 'lucide-react'
 import type { SlippinessResult, RiskLevel } from '../../logic/slipperiness'
 import type { RouteState } from '../../App'
@@ -24,7 +24,7 @@ const RISK_KEYS: Record<RiskLevel, string> = {
   'dont-ride': 'risk.dont_ride',
 }
 
-type JacketVerdict = 'yes' | 'maybe' | 'no'
+type GearVerdict = 'waterproof' | 'waterproof-maybe' | 'windproof' | 'windproof-maybe' | null
 
 // Cyclist's apparent wind ≈ real wind + ~5 m/s ride speed
 const CYCLING_SPEED_MS = 5
@@ -39,31 +39,35 @@ function feelsLike(tempC: number, windMs: number): number {
   return 13.12 + 0.6215 * tempC - 11.37 * v + 0.3965 * tempC * v
 }
 
-function jacketVerdict(
+function gearVerdict(
   rainNextHours: number,
   recentPrecipMm: number,
   precipType: string,
   currentTemp: number,
   windSpeedMs: number,
-): JacketVerdict {
-  if (recentPrecipMm > 0.1 || rainNextHours > 1 || precipType === 'snow' || precipType === 'sleet') return 'yes'
-  // Cold + windy: a windproof shell matters even on a dry day
+): GearVerdict {
+  // Rain/snow/sleet takes priority over wind
+  if (recentPrecipMm > 0.1 || rainNextHours > 1 || precipType === 'snow' || precipType === 'sleet') return 'waterproof'
+  if (rainNextHours > 0.2) return 'waterproof-maybe'
+  // Dry but cold wind
   const feels = feelsLike(currentTemp, windSpeedMs)
-  if (feels < 3) return 'yes'
-  if (rainNextHours > 0.2 || feels < 7) return 'maybe'
-  return 'no'
+  if (feels < 3) return 'windproof'
+  if (feels < 7) return 'windproof-maybe'
+  return null
 }
 
-const JACKET_KEYS: Record<JacketVerdict, string> = {
-  yes: 'jacket.yes',
-  maybe: 'jacket.maybe',
-  no: 'jacket.no',
+const GEAR_KEYS: Record<NonNullable<GearVerdict>, string> = {
+  'waterproof':       'jacket.waterproof',
+  'waterproof-maybe': 'jacket.waterproofMaybe',
+  'windproof':        'jacket.windproof',
+  'windproof-maybe':  'jacket.windproofMaybe',
 }
 
-const JACKET_COLOURS: Record<JacketVerdict, string> = {
-  yes: '#58a6ff',
-  maybe: '#d29922',
-  no: '#3fb950',
+const GEAR_COLOURS: Record<NonNullable<GearVerdict>, string> = {
+  'waterproof':       '#58a6ff',
+  'waterproof-maybe': '#d29922',
+  'windproof':        '#58a6ff',
+  'windproof-maybe':  '#d29922',
 }
 
 interface SurfaceSegment {
@@ -189,6 +193,21 @@ function PrecipIcon({ type }: { type: string }) {
 
 type Tab = 'now' | 'plus2h' | 'plus8h'
 
+export function GearRow({ data }: { data: RouteState }) {
+  const { t } = useTranslation()
+  const { recentPrecipMm, precipType, rainNextHours, windSpeedMs } = data
+  const gear = gearVerdict(rainNextHours, recentPrecipMm, precipType, data.currentTemp, windSpeedMs)
+  if (!gear) return null
+  return (
+    <div className="jacket-row" style={{ '--jacket-color': GEAR_COLOURS[gear] } as React.CSSProperties}>
+      <span className="jacket-label-group">
+        <Shirt size={14} className="jacket-icon" />
+        <span>{t(GEAR_KEYS[gear])}</span>
+      </span>
+    </div>
+  )
+}
+
 export function VerdictPanel({
   data,
   tab,
@@ -203,9 +222,6 @@ export function VerdictPanel({
   const { t } = useTranslation()
   const { slipperiness, recentPrecipMm, precipType, rainNextHours,
           overnightLow, hasIceAlert, windSpeedMs, windGustMs } = data
-  const jacket = jacketVerdict(rainNextHours, recentPrecipMm, precipType, data.currentTemp, windSpeedMs)
-  const jacketColor = JACKET_COLOURS[jacket]
-  const JacketIcon = jacket === 'no' ? CheckCircle : Shirt
 
   const tempKey   = tab === 'now' ? 'pill.tempNow'   : tab === 'plus2h' ? 'pill.tempIn2h'   : 'pill.tempIn8h'
   const precipKey = tab === 'now' ? 'pill.precipNow' : tab === 'plus2h' ? 'pill.precipAt2h' : 'pill.precipAt8h'
@@ -245,16 +261,7 @@ export function VerdictPanel({
         </div>
 
         <div className="verdict-section-label">{t('verdict.gear')}</div>
-        <div
-          className="jacket-row"
-          style={{ '--jacket-color': jacketColor } as React.CSSProperties}
-        >
-          <span className="jacket-label-group">
-            <JacketIcon size={14} className="jacket-icon" />
-            {t('verdict.jacket')}
-          </span>
-          <span className="jacket-chip">{t(JACKET_KEYS[jacket])}</span>
-        </div>
+        <GearRow data={data} />
 
         <div className="weather-pills">
           <span className="weather-pill">

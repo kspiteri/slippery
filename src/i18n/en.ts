@@ -44,7 +44,6 @@ const en = {
     studdedYes: 'Yes',
     studdedNo: 'No',
     tyreToggleAria: 'Studded tyres',
-    jacket: 'Waterproof jacket',
     showMap: 'show map',
     hideMap: 'hide map',
     tabElevation: 'Elevation',
@@ -87,9 +86,10 @@ const en = {
     dont_ride: 'Riding conditions are dangerous, cycling not recommended.',
   },
   jacket: {
-    yes: 'Bring a jacket',
-    maybe: 'Maybe a jacket',
-    no: 'No jacket needed',
+    waterproof: 'Bring a waterproof jacket.',
+    waterproofMaybe: 'A waterproof jacket might help.',
+    windproof: 'Bring a windproof layer.',
+    windproofMaybe: 'A windproof layer might help.',
   },
   pill: {
     tempNow: '{{temp}} °C now',

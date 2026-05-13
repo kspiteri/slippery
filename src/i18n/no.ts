@@ -46,7 +46,6 @@ const no: Translations = {
     studdedYes: 'Ja',
     studdedNo: 'Nei',
     tyreToggleAria: 'Piggdekk',
-    jacket: 'Vanntett jakke',
     showMap: 'vis kart',
     hideMap: 'skjul kart',
     tabElevation: 'Høyde',
@@ -89,9 +88,10 @@ const no: Translations = {
     dont_ride: 'Forholdene er farlige, sykling frarådes.',
   },
   jacket: {
-    yes: 'Ta med jakke',
-    maybe: 'Kanskje jakke',
-    no: 'Ingen jakke nødvendig',
+    waterproof: 'Ta med en vanntett jakke.',
+    waterproofMaybe: 'En vanntett jakke kan være lurt.',
+    windproof: 'Ta med et vindtett lag.',
+    windproofMaybe: 'Et vindtett lag kan være lurt.',
   },
   pill: {
     tempNow: '{{temp}} °C nå',
