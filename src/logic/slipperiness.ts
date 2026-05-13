@@ -93,8 +93,14 @@ export function calculateSlipperiness(
       params: { temp: weather.currentTemp.toFixed(1) },
     })
   }
-  if (weather.currentTemp >= 0 && weather.currentTemp <= 3 && weather.overnightLow < 0) {
-    addRule('thaw', 10, 8, { key: 'factor.thaw' })
+  // Black ice forms when a previously wet road refreezes — needs *past* precip, not upcoming.
+  const blackIceRisk =
+    weather.precipLastHourMm > 0 &&
+    weather.overnightLow < 0 &&
+    weather.currentTemp >= -2 &&
+    weather.currentTemp <= 3
+  if (blackIceRisk) {
+    addRule('blackIce', 35, 25, { key: 'factor.black_ice' })
   }
 
   if (weather.recentPrecipMm > 0 && weather.overnightLow < 2) {

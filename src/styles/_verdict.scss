@@ -211,3 +211,34 @@
   border-color: color-mix(in srgb, var(--alert) 30%, transparent);
   background: color-mix(in srgb, var(--alert) 8%, transparent);
 }
+
+.alert-banner {
+  display: flex;
+  align-items: center;
+  gap: rem(8);
+  margin: rem(10) rem(16) 0;
+  padding: rem(10) rem(12);
+  border-radius: var(--radius-sm);
+  border: 1px solid color-mix(in srgb, var(--alert-color) 45%, transparent);
+  background: color-mix(in srgb, var(--alert-color) 12%, transparent);
+  color: var(--alert-color);
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.35;
+
+  svg { flex-shrink: 0; }
+}
+
+.tab-label {
+  display: inline-flex;
+  align-items: center;
+  gap: rem(5);
+}
+
+.tab-alert-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--alert);
+  box-shadow: 0 0 5px var(--alert);
+}

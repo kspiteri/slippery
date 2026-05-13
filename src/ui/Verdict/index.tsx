@@ -8,7 +8,7 @@ import { surfaceColour } from '../../logic/surfaces'
 import { ElevationProfile } from './ElevationProfile'
 import { RouteMap } from '../RouteMap'
 import { Tabs } from '../primitives/Tabs'
-import { VerdictPanel, SurfaceBar, StatusBadge, VerdictHero } from './VerdictPanel'
+import { VerdictPanel, SurfaceBar, StatusBadge, VerdictHero, AlertBanner } from './VerdictPanel'
 
 interface Props {
   now: RouteState
@@ -24,6 +24,15 @@ interface Props {
 }
 
 type Tab = 'now' | 'plus2h' | 'plus8h'
+
+function TabLabel({ text, alert }: { text: string; alert: boolean }) {
+  return (
+    <span className="tab-label">
+      {text}
+      {alert && <span className="tab-alert-dot" aria-hidden />}
+    </span>
+  )
+}
 
 export function Verdict({ now, plus2h, plus8h, lastCheckedAt, coordinates, segments, multiPoint, tyrePref, onChangeTyrePref, focusMode }: Props) {
   const { t } = useTranslation()
@@ -75,6 +84,8 @@ export function Verdict({ now, plus2h, plus8h, lastCheckedAt, coordinates, segme
 
       <VerdictHero risk={tyrePref === 'studded' ? active.slipperiness.studdedRisk : active.slipperiness.normalRisk} />
 
+      <AlertBanner data={active} />
+
       <Tabs<'elevation' | 'map'>
         value={profileTab}
         onChange={setProfileTab}
@@ -85,7 +96,7 @@ export function Verdict({ now, plus2h, plus8h, lastCheckedAt, coordinates, segme
         variant="compact"
       />
       {profileTab === 'elevation'
-        ? <ElevationProfile coordinates={coordinates} showSampleMarkers={multiPoint} color={surfaceColour(now.dominantSurface)} />
+        ? <ElevationProfile coordinates={coordinates} showSampleMarkers={multiPoint} color={surfaceColour(active.dominantSurface)} />
         : <RouteMap coordinates={coordinates} segments={segments} />
       }
 
@@ -95,9 +106,9 @@ export function Verdict({ now, plus2h, plus8h, lastCheckedAt, coordinates, segme
         value={tab}
         onChange={setTab}
         options={[
-          { value: 'now', label: t('verdict.tabNow') },
-          { value: 'plus2h', label: t('verdict.tabPlus2h') },
-          { value: 'plus8h', label: t('verdict.tabPlus8h') },
+          { value: 'now', label: <TabLabel text={t('verdict.tabNow')} alert={now.hasIceAlert} /> },
+          { value: 'plus2h', label: <TabLabel text={t('verdict.tabPlus2h')} alert={plus2h.hasIceAlert} /> },
+          { value: 'plus8h', label: <TabLabel text={t('verdict.tabPlus8h')} alert={plus8h.hasIceAlert} /> },
         ]}
         variant="full"
       />

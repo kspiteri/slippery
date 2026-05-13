@@ -26,9 +26,31 @@ const RISK_KEYS: Record<RiskLevel, string> = {
 
 type JacketVerdict = 'yes' | 'maybe' | 'no'
 
-function jacketVerdict(rainNextHours: number, recentPrecipMm: number, precipType: string): JacketVerdict {
+// Cyclist's apparent wind ≈ real wind + ~5 m/s ride speed
+const CYCLING_SPEED_MS = 5
+
+// Classic wind chill index (Environment Canada). Valid for T <= 10 °C and V >= 4.8 km/h.
+// Returns the air temp unchanged outside that range.
+function feelsLike(tempC: number, windMs: number): number {
+  if (tempC > 10) return tempC
+  const apparentWindKmh = (windMs + CYCLING_SPEED_MS) * 3.6
+  if (apparentWindKmh < 4.8) return tempC
+  const v = Math.pow(apparentWindKmh, 0.16)
+  return 13.12 + 0.6215 * tempC - 11.37 * v + 0.3965 * tempC * v
+}
+
+function jacketVerdict(
+  rainNextHours: number,
+  recentPrecipMm: number,
+  precipType: string,
+  currentTemp: number,
+  windSpeedMs: number,
+): JacketVerdict {
   if (recentPrecipMm > 0.1 || rainNextHours > 1 || precipType === 'snow' || precipType === 'sleet') return 'yes'
-  if (rainNextHours > 0.2) return 'maybe'
+  // Cold + windy: a windproof shell matters even on a dry day
+  const feels = feelsLike(currentTemp, windSpeedMs)
+  if (feels < 3) return 'yes'
+  if (rainNextHours > 0.2 || feels < 7) return 'maybe'
   return 'no'
 }
 
@@ -112,6 +134,42 @@ const HEADLINE_KEYS: Record<RiskLevel, string> = {
   'dont-ride': 'headline.dont_ride',
 }
 
+const ALERT_BANNER_COLOURS: Record<string, string> = {
+  orange: '#f0883e',
+  red: '#f85149',
+  yellow: '#d29922',
+  green: '#3fb950',
+}
+
+function formatValidUntil(iso: string, locale: string): string {
+  if (!iso) return ''
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return ''
+  const time = d.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
+  if (d.toDateString() === new Date().toDateString()) return time
+  const date = d.toLocaleDateString(locale, { day: '2-digit', month: 'short' })
+  return `${date} ${time}`
+}
+
+export function AlertBanner({ data }: { data: RouteState }) {
+  const { t, i18n } = useTranslation()
+  if (!data.hasIceAlert) return null
+  // Yellow alerts stay as a quiet pill + tab dot; orange/red/unknown get a banner
+  if (data.alertAwareness === 'yellow') return null
+  const colour = ALERT_BANNER_COLOURS[data.alertAwareness ?? 'orange'] ?? ALERT_BANNER_COLOURS.orange
+  const event = data.alertEvent || t('pill.iceAlert')
+  const until = formatValidUntil(data.alertValidUntil, i18n.language)
+  const text = until
+    ? t('verdict.alertBannerUntil', { event, time: until })
+    : t('verdict.alertBanner', { event })
+  return (
+    <div className="alert-banner" style={{ '--alert-color': colour } as React.CSSProperties}>
+      <AlertTriangle size={14} />
+      <span>{text}</span>
+    </div>
+  )
+}
+
 export function VerdictHero({ risk }: { risk: RiskLevel }) {
   const { t } = useTranslation()
   const color = RISK_COLOURS[risk]
@@ -145,7 +203,7 @@ export function VerdictPanel({
   const { t } = useTranslation()
   const { slipperiness, recentPrecipMm, precipType, rainNextHours,
           overnightLow, hasIceAlert, windSpeedMs, windGustMs } = data
-  const jacket = jacketVerdict(rainNextHours, recentPrecipMm, precipType)
+  const jacket = jacketVerdict(rainNextHours, recentPrecipMm, precipType, data.currentTemp, windSpeedMs)
   const jacketColor = JACKET_COLOURS[jacket]
   const JacketIcon = jacket === 'no' ? CheckCircle : Shirt
 

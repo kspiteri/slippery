@@ -1,4 +1,4 @@
-import type { WeatherData, WeatherSnapshot } from '../api/met'
+import type { AlertAwareness, WeatherData, WeatherSnapshot } from '../api/met'
 import { calculateSlipperiness } from './slipperiness'
 import { distanceM } from './geo'
 
@@ -92,6 +92,7 @@ function worstWeather(
 
   // Wettest point drives jacket recommendation, even if it isn't the worst for slipperiness
   const wettestRecent = Math.max(...candidates.map((c) => c.recentPrecipMm))
+  const wettestLastHour = Math.max(...candidates.map((c) => c.precipLastHourMm))
   const wettestNext = Math.max(...candidates.map((c) => c.rainNextHours))
   const promotedType: WeatherData['precipType'] =
     candidates.some((c) => c.precipType === 'snow')  ? 'snow'  :
@@ -99,14 +100,28 @@ function worstWeather(
     candidates.some((c) => c.precipType === 'rain')  ? 'rain'  :
     worst.precipType
 
+  // Most severe alert across sample points drives the alert display
+  const AWARENESS_RANK: Record<AlertAwareness, number> = { green: 0, yellow: 1, orange: 2, red: 3 }
+  const headline = candidates.reduce<WeatherData | null>((acc, c) => {
+    if (!c.hasIceAlert) return acc
+    if (!acc) return c
+    const a = acc.alertAwareness ? AWARENESS_RANK[acc.alertAwareness] : 1
+    const b = c.alertAwareness   ? AWARENESS_RANK[c.alertAwareness]   : 1
+    return b > a ? c : acc
+  }, null)
+
   return {
     data: {
       ...worst,
       recentPrecipMm: wettestRecent,
+      precipLastHourMm: wettestLastHour,
       rainNextHours: wettestNext,
       precipType: promotedType,
       hasIceAlert: candidates.some((c) => c.hasIceAlert),
       alertSummary: candidates.map((c) => c.alertSummary).filter(Boolean).join('; '),
+      alertEvent: headline?.alertEvent ?? '',
+      alertAwareness: headline?.alertAwareness ?? null,
+      alertValidUntil: headline?.alertValidUntil ?? '',
     },
     index: worstIndex,
   }

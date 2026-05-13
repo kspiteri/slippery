@@ -11,7 +11,7 @@ import {
   type SavedRoute, MAX_SAVED_ROUTES,
 } from './state'
 import { fetchRoute, geocodeReverse, type RouteResult, type RouteSegment } from './api/ors'
-import { fetchWeatherAll, type WeatherData } from './api/met'
+import { fetchWeatherAll, type WeatherData, type AlertAwareness } from './api/met'
 import { buildElevationGrid } from './api/elevation'
 import { calculateSlipperiness, type SlippinessResult } from './logic/slipperiness'
 import { renderAsciiBackground, clearAsciiBackground } from './ui/ascii'
@@ -41,6 +41,9 @@ export interface RouteState {
   windSpeedMs: number
   windGustMs: number
   hasIceAlert: boolean
+  alertEvent: string
+  alertAwareness: AlertAwareness | null
+  alertValidUntil: string
   sampleSource: SamplePoint
 }
 
@@ -79,6 +82,9 @@ function buildState(w: WeatherData, route: RouteResult, source: SamplePoint): Ro
     windSpeedMs: w.windSpeedMs,
     windGustMs: w.windGustMs,
     hasIceAlert: w.hasIceAlert,
+    alertEvent: w.alertEvent,
+    alertAwareness: w.alertAwareness,
+    alertValidUntil: w.alertValidUntil,
     sampleSource: source,
   }
 }

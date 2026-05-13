@@ -18,7 +18,7 @@ const SCORING_RULES: ScoringRule[] = [
   { key: 'overnightLow', maxPoints: 30, capped: false, studs: { kind: 'flat',   value: 20  } },
   { key: 'hardFreeze',   maxPoints: 20, capped: false, studs: { kind: 'flat',   value: 15  } },
   { key: 'coldCurrent',  maxPoints: 15, capped: false, studs: { kind: 'flat',   value: 5   } },
-  { key: 'thaw',         maxPoints: 10, capped: false, studs: { kind: 'flat',   value: 8   } },
+  { key: 'blackIce',     maxPoints: 35, capped: false, studs: { kind: 'flat',   value: 25  } },
   { key: 'coldPrecip',   maxPoints: 20, capped: false, studs: { kind: 'flat',   value: 0   } },
   { key: 'snowExtra',    maxPoints: 15, capped: false, studs: { kind: 'flat',   value: 10  } },
   { key: 'sleetExtra',   maxPoints:  8, capped: false, studs: { kind: 'flat',   value: 4   } },
@@ -60,10 +60,10 @@ export function HowScored({ result, tyrePref }: { result: SlippinessResult; tyre
         ) : (
           <table>
             <tbody>
-              {breakdown.map((b, i) => {
+              {breakdown.map((b) => {
                 const effective = showStuds ? Math.max(0, b.points - b.studsReduction) : b.points
                 return (
-                  <tr key={`${b.ruleKey}-${i}`}>
+                  <tr key={b.ruleKey}>
                     <td>{t(`howScored.rules.${b.ruleKey}`)}</td>
                     <td>+{effective}</td>
                   </tr>
