@@ -12,9 +12,8 @@ import {
 } from './state'
 import { fetchRoute, geocodeReverse, type RouteResult, type RouteSegment } from './api/ors'
 import { fetchWeatherAll, type WeatherData, type AlertAwareness } from './api/met'
-import { buildElevationGrid } from './api/elevation'
 import { calculateSlipperiness, type SlippinessResult } from './logic/slipperiness'
-import { renderAsciiBackground, clearAsciiBackground } from './ui/ascii'
+import { renderMapBackground, clearMapBackground } from './ui/mapBackground'
 import { AddressForm, type Waypoint } from './ui/AddressForm'
 import { Verdict } from './ui/Verdict'
 import { AppHeader } from './ui/AppHeader'
@@ -55,6 +54,7 @@ export interface Results {
   segments: RouteSegment[]
   // Empty when single-point (midpoint) sampling was used
   sampleFractions: number[]
+  distanceKm: number
 }
 
 type Theme = 'dark' | 'light'
@@ -166,8 +166,7 @@ export function App() {
       setRoutePreview(null)
       setCooldownUntil(Date.now() + COOLDOWN_MS)
       if (cached.results.coordinates.length) {
-        const grid = buildElevationGrid(cached.results.coordinates)
-        renderAsciiBackground(grid, cached.results.coordinates)
+        renderMapBackground(cached.results.coordinates, cached.results.distanceKm)
       }
       return
     }
@@ -224,6 +223,7 @@ export function App() {
       coordinates: route.coordinates,
       segments: route.segments,
       sampleFractions,
+      distanceKm: route.distanceKm,
     }
 
     const ts = setCached(from, to, waypoints, newResults)
@@ -232,8 +232,7 @@ export function App() {
     setStatus('idle')
     setCooldownUntil(Date.now() + COOLDOWN_MS)
 
-    const grid = buildElevationGrid(route.coordinates)
-    renderAsciiBackground(grid, route.coordinates)
+    renderMapBackground(route.coordinates, route.distanceKm)
     lastRouteRef.current = route
   }, [])
 
@@ -307,7 +306,7 @@ export function App() {
     if (clearConfirmTimer.current) clearTimeout(clearConfirmTimer.current)
     clearUserData()
     lastRouteRef.current = null
-    clearAsciiBackground()
+    clearMapBackground()
     setSavedRoutes([])
     setResults(null)
     setRoutePreview(null)

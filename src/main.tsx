@@ -3,9 +3,9 @@ import { createRoot } from 'react-dom/client'
 import './style.scss'
 import './i18n'
 import { App } from './App'
-import { initAsciiResize } from './ui/ascii'
+import { initMapResize } from './ui/mapBackground'
 
-initAsciiResize()
+initMapResize()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
