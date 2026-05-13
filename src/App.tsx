@@ -24,7 +24,7 @@ import { SavedRoutesList } from './ui/SavedRoutesList'
 import { AlertTriangle } from 'lucide-react'
 import { withRetry } from './lib/retry'
 import { getCached, setCached } from './cache'
-import { needsMultiPointSampling, sampleCoordinates, aggregateSnapshots, type SamplePoint } from './logic/weatherSampling'
+import { needsMultiPointSampling, sampleCoordinates, sampleFractionsFor, aggregateSnapshots, type SamplePoint } from './logic/weatherSampling'
 import { parseGeoFile, thinCoordinates, idealWaypointCount } from './logic/parseGeoFile'
 
 export interface RouteState {
@@ -53,7 +53,8 @@ export interface Results {
   plus8h: RouteState
   coordinates: [number, number, number][]
   segments: RouteSegment[]
-  multiPoint: boolean
+  // Empty when single-point (midpoint) sampling was used
+  sampleFractions: number[]
 }
 
 type Theme = 'dark' | 'light'
@@ -193,13 +194,15 @@ export function App() {
 
     let weather: Awaited<ReturnType<typeof fetchWeatherAll>>
     let sources: { now: SamplePoint; plus2h: SamplePoint; plus8h: SamplePoint }
+    let sampleFractions: number[] = []
     try {
       if (needsMultiPointSampling(route.distanceKm, route.coordinates)) {
-        const points = sampleCoordinates(route.coordinates)
+        sampleFractions = sampleFractionsFor(route.distanceKm)
+        const points = sampleCoordinates(route.coordinates, sampleFractions)
         const snapshots = await withRetry(() =>
           Promise.all(points.map(([lat, lng]) => fetchWeatherAll(lat, lng))),
         )
-        const aggregated = aggregateSnapshots(snapshots, route.surfaceCounts, route.distanceKm * 1000)
+        const aggregated = aggregateSnapshots(snapshots, route.surfaceCounts, route.distanceKm * 1000, sampleFractions)
         weather = { now: aggregated.now, plus2h: aggregated.plus2h, plus8h: aggregated.plus8h }
         sources = { now: aggregated.nowSource, plus2h: aggregated.plus2hSource, plus8h: aggregated.plus8hSource }
       } else {
@@ -220,7 +223,7 @@ export function App() {
       plus8h: buildState(weather.plus8h, route, sources.plus8h),
       coordinates: route.coordinates,
       segments: route.segments,
-      multiPoint: sources.now !== 'midpoint',
+      sampleFractions,
     }
 
     const ts = setCached(from, to, waypoints, newResults)
@@ -361,7 +364,7 @@ export function App() {
             lastCheckedAt={lastCheckedAt}
             coordinates={results.coordinates}
             segments={results.segments}
-            multiPoint={results.multiPoint}
+            sampleFractions={results.sampleFractions}
             tyrePref={tyrePref}
             onChangeTyrePref={chooseTyrePref}
             focusMode={focusMode}

@@ -1,10 +1,10 @@
 import { useTranslation } from 'react-i18next'
-import { elevationGain, SAMPLE_FRACTIONS } from '../../logic/weatherSampling'
+import { elevationGain } from '../../logic/weatherSampling'
 import { distanceM } from '../../logic/geo'
 
 interface Props {
   coordinates: [number, number, number][] // [lng, lat, elev]
-  showSampleMarkers: boolean
+  sampleFractions: number[]
   color?: string
 }
 
@@ -15,7 +15,7 @@ const PAD_Y = 6
 const RESAMPLE_POINTS = 80
 const HIDE_BELOW_GAIN_M = 20
 
-export function ElevationProfile({ coordinates, showSampleMarkers, color }: Props) {
+export function ElevationProfile({ coordinates, sampleFractions, color }: Props) {
   const { t } = useTranslation()
   if (coordinates.length < 2) return null
   const gain = Math.round(elevationGain(coordinates))
@@ -52,9 +52,9 @@ export function ElevationProfile({ coordinates, showSampleMarkers, color }: Prop
     `${linePath} L ${xOf(total).toFixed(2)} ${HEIGHT - PAD_Y} L ${xOf(0).toFixed(2)} ${HEIGHT - PAD_Y} Z`
 
   const markers: { x: number; y: number }[] = []
-  if (showSampleMarkers) {
+  if (sampleFractions.length > 1) {
     let mCursor = 0
-    for (const fraction of SAMPLE_FRACTIONS) {
+    for (const fraction of sampleFractions) {
       const target = fraction * total
       while (mCursor < cumulative.length - 1 && cumulative[mCursor] < target) mCursor++
       markers.push({ x: xOf(target), y: yOf(coordinates[mCursor][2] ?? 0) })

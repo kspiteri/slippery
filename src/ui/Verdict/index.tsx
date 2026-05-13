@@ -17,7 +17,7 @@ interface Props {
   lastCheckedAt: number | null
   coordinates: [number, number, number][]
   segments: RouteSegment[]
-  multiPoint: boolean
+  sampleFractions: number[]
   tyrePref: TyrePref
   onChangeTyrePref: (pref: TyrePref) => void
   focusMode?: boolean
@@ -34,7 +34,7 @@ function TabLabel({ text, alert }: { text: string; alert: boolean }) {
   )
 }
 
-export function Verdict({ now, plus2h, plus8h, lastCheckedAt, coordinates, segments, multiPoint, tyrePref, onChangeTyrePref, focusMode }: Props) {
+export function Verdict({ now, plus2h, plus8h, lastCheckedAt, coordinates, segments, sampleFractions, tyrePref, onChangeTyrePref, focusMode }: Props) {
   const { t } = useTranslation()
   const [tab, setTab] = useState<Tab>('now')
   const [profileTab, setProfileTab] = useState<'elevation' | 'map'>('elevation')
@@ -96,7 +96,7 @@ export function Verdict({ now, plus2h, plus8h, lastCheckedAt, coordinates, segme
         variant="compact"
       />
       {profileTab === 'elevation'
-        ? <ElevationProfile coordinates={coordinates} showSampleMarkers={multiPoint} color={surfaceColour(active.dominantSurface)} />
+        ? <ElevationProfile coordinates={coordinates} sampleFractions={sampleFractions} color={surfaceColour(active.dominantSurface)} />
         : <RouteMap coordinates={coordinates} segments={segments} />
       }
 

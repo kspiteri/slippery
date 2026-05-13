@@ -36,6 +36,12 @@ function scoreToRisk(score: number): RiskLevel {
   return 'clear'
 }
 
+const RISK_ORDER: RiskLevel[] = ['clear', 'caution', 'high', 'dont-ride']
+
+function atLeast(risk: RiskLevel, floor: RiskLevel): RiskLevel {
+  return RISK_ORDER.indexOf(risk) >= RISK_ORDER.indexOf(floor) ? risk : floor
+}
+
 function sumMatching(
   surfaceCounts: Record<string, number>,
   predicate: (key: string) => boolean,
@@ -174,11 +180,19 @@ export function calculateSlipperiness(
 
   const studdedScore = Math.max(0, score - studdedReduction)
 
+  // An active MET alert means "things might not be visible in the score yet" — never call it 'clear'
+  let normalRisk = scoreToRisk(score)
+  let studdedRisk = scoreToRisk(studdedScore)
+  if (weather.hasIceAlert) {
+    normalRisk = atLeast(normalRisk, 'caution')
+    studdedRisk = atLeast(studdedRisk, 'caution')
+  }
+
   return {
     score,
     studdedScore,
-    normalRisk: scoreToRisk(score),
-    studdedRisk: scoreToRisk(studdedScore),
+    normalRisk,
+    studdedRisk,
     factors,
     breakdown,
   }

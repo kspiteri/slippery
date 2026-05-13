@@ -4,7 +4,6 @@ import { distanceM } from './geo'
 
 const MULTI_POINT_DISTANCE_KM = 5
 const MULTI_POINT_ELEVATION_GAIN_M = 100
-export const SAMPLE_FRACTIONS = [1 / 6, 1 / 2, 5 / 6]
 
 export type SamplePoint = 'midpoint' | 'start' | 'mid' | 'end'
 
@@ -18,7 +17,17 @@ export interface AggregatedSnapshot {
   plus8hSource: SamplePoint
 }
 
-const FRACTION_LABELS: SamplePoint[] = ['start', 'mid', 'end']
+// More samples for longer routes — capped at 7 to stay polite to MET (each sample = 2 API calls).
+export function sampleFractionsFor(distanceKm: number): number[] {
+  const count = distanceKm > 200 ? 7 : distanceKm > 50 ? 5 : 3
+  return Array.from({ length: count }, (_, i) => (2 * i + 1) / (2 * count))
+}
+
+function fractionLabel(fraction: number): SamplePoint {
+  if (fraction < 1 / 3) return 'start'
+  if (fraction < 2 / 3) return 'mid'
+  return 'end'
+}
 
 export function elevationGain(coordinates: [number, number, number][]): number {
   let gain = 0
@@ -39,6 +48,7 @@ export function needsMultiPointSampling(
 
 export function sampleCoordinates(
   coordinates: [number, number, number][],
+  fractions: number[],
 ): [number, number][] {
   if (coordinates.length === 0) return []
   const cumulative: number[] = [0]
@@ -46,7 +56,7 @@ export function sampleCoordinates(
     cumulative.push(cumulative[i - 1] + distanceM(coordinates[i - 1], coordinates[i]))
   }
   const total = cumulative[cumulative.length - 1]
-  return SAMPLE_FRACTIONS.map((fraction) => {
+  return fractions.map((fraction) => {
     const target = fraction * total
     let idx = cumulative.findIndex((d) => d >= target)
     if (idx < 0) idx = coordinates.length - 1
@@ -59,6 +69,7 @@ export function aggregateSnapshots(
   snapshots: WeatherSnapshot[],
   surfaceCounts: Record<string, number>,
   totalMeters: number,
+  fractions: number[],
 ): AggregatedSnapshot {
   const now    = worstWeather(snapshots.map((s) => s.now),    surfaceCounts, totalMeters)
   const plus2h = worstWeather(snapshots.map((s) => s.plus2h), surfaceCounts, totalMeters)
@@ -67,9 +78,9 @@ export function aggregateSnapshots(
     now: now.data,
     plus2h: plus2h.data,
     plus8h: plus8h.data,
-    nowSource: FRACTION_LABELS[now.index],
-    plus2hSource: FRACTION_LABELS[plus2h.index],
-    plus8hSource: FRACTION_LABELS[plus8h.index],
+    nowSource: fractionLabel(fractions[now.index]),
+    plus2hSource: fractionLabel(fractions[plus2h.index]),
+    plus8hSource: fractionLabel(fractions[plus8h.index]),
   }
 }
 
