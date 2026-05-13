@@ -7,7 +7,7 @@ const BBOX_HALF_LAT = 0.35
 const BBOX_HALF_LNG = 0.50
 
 const ROTATE_INTERVAL_MS = 10_000
-const FADE_DURATION_MS   = 2_000
+const FADE_DURATION_MS = 2_000
 
 // Seeded grain canvas — built once, reused as a pattern every frame
 const GRAIN_SIZE = 256
@@ -18,7 +18,7 @@ const _grainCtx = _grainCanvas.getContext('2d')!
 const _grainData = _grainCtx.createImageData(GRAIN_SIZE, GRAIN_SIZE)
 for (let i = 0; i < GRAIN_SIZE * GRAIN_SIZE; i++) {
   const v = Math.random() * 255
-  _grainData.data[i * 4]     = v
+  _grainData.data[i * 4] = v
   _grainData.data[i * 4 + 1] = v
   _grainData.data[i * 4 + 2] = v
   _grainData.data[i * 4 + 3] = 255
@@ -26,7 +26,7 @@ for (let i = 0; i < GRAIN_SIZE * GRAIN_SIZE; i++) {
 _grainCtx.putImageData(_grainData, 0, 0)
 
 let cachedImages: HTMLImageElement[] = []
-let currentIdx  = 0
+let currentIdx = 0
 let rotateTimer: ReturnType<typeof setTimeout> | null = null
 let fadeRaf: number | null = null
 let resizeInitialised = false
@@ -129,7 +129,7 @@ function crossfadeTo(nextIdx: number): void {
   if (fadeRaf !== null) cancelAnimationFrame(fadeRaf)
   const imgA = cachedImages[currentIdx]
   const imgB = cachedImages[nextIdx]
-  const dark  = isDark()  // captured once — stable for the whole transition
+  const dark = isDark()  // captured once — stable for the whole transition
   const start = performance.now()
 
   function tick(now: number) {
@@ -158,7 +158,7 @@ function scheduleNext(): void {
 function resizeCanvas(): void {
   const canvas = document.getElementById('map-bg') as HTMLCanvasElement | null
   if (!canvas) return
-  canvas.width  = window.innerWidth
+  canvas.width = window.innerWidth
   canvas.height = window.innerHeight
 }
 
@@ -167,9 +167,9 @@ function resizeCanvas(): void {
 export async function renderMapBackground(coords: [number, number, number][], distanceKm: number): Promise<void> {
   // Cancel any in-flight animation from previous route
   if (rotateTimer !== null) { clearTimeout(rotateTimer); rotateTimer = null }
-  if (fadeRaf    !== null) { cancelAnimationFrame(fadeRaf); fadeRaf = null }
+  if (fadeRaf !== null) { cancelAnimationFrame(fadeRaf); fadeRaf = null }
   cachedImages = []
-  currentIdx   = 0
+  currentIdx = 0
 
   resizeCanvas()
 
@@ -187,9 +187,9 @@ export async function renderMapBackground(coords: [number, number, number][], di
 
 export function clearMapBackground(): void {
   if (rotateTimer !== null) { clearTimeout(rotateTimer); rotateTimer = null }
-  if (fadeRaf    !== null) { cancelAnimationFrame(fadeRaf); fadeRaf = null }
+  if (fadeRaf !== null) { cancelAnimationFrame(fadeRaf); fadeRaf = null }
   cachedImages = []
-  currentIdx   = 0
+  currentIdx = 0
 
   const canvas = document.getElementById('map-bg') as HTMLCanvasElement | null
   if (canvas) {

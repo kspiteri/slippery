@@ -57,17 +57,17 @@ function gearVerdict(
 }
 
 const GEAR_KEYS: Record<NonNullable<GearVerdict>, string> = {
-  'waterproof':       'jacket.waterproof',
+  'waterproof': 'jacket.waterproof',
   'waterproof-maybe': 'jacket.waterproofMaybe',
-  'windproof':        'jacket.windproof',
-  'windproof-maybe':  'jacket.windproofMaybe',
+  'windproof': 'jacket.windproof',
+  'windproof-maybe': 'jacket.windproofMaybe',
 }
 
 const GEAR_COLOURS: Record<NonNullable<GearVerdict>, string> = {
-  'waterproof':       '#58a6ff',
+  'waterproof': '#58a6ff',
   'waterproof-maybe': '#d29922',
-  'windproof':        '#58a6ff',
-  'windproof-maybe':  '#d29922',
+  'windproof': '#58a6ff',
+  'windproof-maybe': '#d29922',
 }
 
 interface SurfaceSegment {
@@ -221,11 +221,11 @@ export function VerdictPanel({
 }) {
   const { t } = useTranslation()
   const { slipperiness, recentPrecipMm, precipType, rainNextHours,
-          overnightLow, hasIceAlert, windSpeedMs, windGustMs } = data
+    overnightLow, hasIceAlert, windSpeedMs, windGustMs } = data
 
-  const tempKey   = tab === 'now' ? 'pill.tempNow'   : tab === 'plus2h' ? 'pill.tempIn2h'   : 'pill.tempIn8h'
+  const tempKey = tab === 'now' ? 'pill.tempNow' : tab === 'plus2h' ? 'pill.tempIn2h' : 'pill.tempIn8h'
   const precipKey = tab === 'now' ? 'pill.precipNow' : tab === 'plus2h' ? 'pill.precipAt2h' : 'pill.precipAt8h'
-  const rainKey   = tab === 'now' ? 'pill.rainNext3h' : tab === 'plus2h' ? 'pill.rainFrom2h' : 'pill.rainFrom8h'
+  const rainKey = tab === 'now' ? 'pill.rainNext3h' : tab === 'plus2h' ? 'pill.rainFrom2h' : 'pill.rainFrom8h'
 
   const factorText = slipperiness.factors
     .map((f) => t(f.key, f.params))
