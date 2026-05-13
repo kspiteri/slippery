@@ -37,14 +37,14 @@
 }
 
 .secondary {
-  background: var(--bg-input);
+  background: var(--bg-sbtn);
   color: var(--text-muted);
   border-color: var(--border);
 
   &:not(:disabled):hover {
     color: var(--accent);
     border-color: var(--accent);
-    background: var(--accent-dim);
+    background: var(--bg-sbtn);
   }
 }
 
